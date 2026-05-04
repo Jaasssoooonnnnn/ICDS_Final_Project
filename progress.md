@@ -77,6 +77,30 @@ feature, and commit after each key point once git is initialized.
 - 2026-05-04: Ran
   `/opt/anaconda3/envs/chat_system/bin/python -m unittest discover -s Chat_System/tests -v`:
   7 tests passed after UI refactor.
+- 2026-05-04: User rejected the first visual refactor as still too far from
+  `/演示图` and specifically called out hand-drawn game/UI elements instead of
+  high-quality imagegen artwork.
+- 2026-05-04: Reworked `Chat_System/ui/message_widgets.py` again so chat rows
+  use deterministic left/right packing instead of weighted grid columns. This
+  fixes floating/disconnected avatars and bubbles in the central message stream.
+- 2026-05-04: Reworked `Chat_System/ui/game_window.py` to use the
+  imagegen-produced `Chat_System/assets/whack_mole_sheet.png` directly: the
+  game field is now a cropped/resized illustrated bitmap, the mole is extracted
+  from the sheet with near-white background removal, and the result panel uses
+  the sheet's illustrated panel behind a clean modal. Removed the hand-drawn
+  hills, holes, and mole shapes from the previous attempt.
+- 2026-05-04: Regenerated and reviewed visual smoke screenshots:
+  `tmp/ui_refactor/main_chat_refactor.png`,
+  `tmp/ui_refactor/game_live_refactor.png`, and
+  `tmp/ui_refactor/game_result_refactor.png`. The game now visibly uses the
+  high-quality generated bitmap scene and mole art; the message stream no
+  longer has detached floating message/avatar placement.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m py_compile Chat_System/*.py Chat_System/services/*.py Chat_System/ui/*.py Chat_System/tests/*.py`:
+  passed.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m unittest discover -s Chat_System/tests -v`:
+  7 tests passed after the imagegen-asset UI repair.
 
 - 2026-05-04: Confirmed required Python packages import successfully in
   `/opt/anaconda3/envs/chat_system`: `tkinter`, `PIL`, `customtkinter`,
