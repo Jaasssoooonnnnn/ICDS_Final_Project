@@ -44,6 +44,40 @@ feature, and commit after each key point once git is initialized.
 
 ## Tests and Validation Log
 
+- 2026-05-04: UI rework requested after comparing reference screenshots in
+  `/演示图` with current screenshots in `/现在的状态`. The issue was visual
+  mismatch, not protocol/functionality failure.
+- 2026-05-04: Reworked `Chat_System/GUI.py` around a light reference-aligned
+  layout: white/light left sidebar with brand, user profile, navigation, and
+  online users; central chat header and compact message stream; right-side
+  grouped cards for Quick Actions, Room Info, Insights, Sentiment Overview, and
+  Leaderboard; rounded chat composer with small icon buttons and Send button.
+- 2026-05-04: Reworked `Chat_System/ui/message_widgets.py` into compact
+  left/right chat bubbles with avatars, sender names, timestamps, bot chips,
+  image previews, and small sentiment tags.
+- 2026-05-04: Reworked `Chat_System/ui/game_window.py` into a bright 3x3
+  cartoon game board with top status cards, instruction sign, clean footer, and
+  a separate result modal with no text/image overlap.
+- 2026-05-04: Added `Chat_System/tests/gui_visual_smoke.py` to construct the
+  redesigned GUI/game and save visual verification screenshots under
+  `tmp/ui_refactor/`.
+- 2026-05-04: Visual screenshots generated and reviewed:
+  `tmp/ui_refactor/main_chat_refactor.png`,
+  `tmp/ui_refactor/game_live_refactor.png`, and
+  `tmp/ui_refactor/game_result_refactor.png`.
+- 2026-05-04: Remaining visual differences versus references: avatars are
+  generated initials rather than profile photos; navigation/action icons are
+  text badges instead of the exact icon set; the game uses Canvas-drawn cartoon
+  shapes rather than a fully illustrated bitmap scene. Layout, color direction,
+  grouping, and no-overlap requirements are now materially closer to the
+  provided screenshots.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m py_compile Chat_System/GUI.py Chat_System/ui/message_widgets.py Chat_System/ui/game_window.py Chat_System/tests/gui_visual_smoke.py`:
+  passed.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m unittest discover -s Chat_System/tests -v`:
+  7 tests passed after UI refactor.
+
 - 2026-05-04: Confirmed required Python packages import successfully in
   `/opt/anaconda3/envs/chat_system`: `tkinter`, `PIL`, `customtkinter`,
   `requests`, `textblob`, `google.genai`, `nltk`.
