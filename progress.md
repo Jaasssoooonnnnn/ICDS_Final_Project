@@ -26,12 +26,12 @@ feature, and commit after each key point once git is initialized.
 ## Feature Milestones
 
 - [x] GUI: CustomTkinter desktop shell matching the reference screenshots.
-- [ ] Chatbot: Gemini-powered bot for direct client interaction.
+- [x] Chatbot: Gemini-powered bot for direct client interaction.
 - [x] Game: Tkinter Whack-a-Mole with single-player score submission.
-- [ ] AI Picture Generation: Pollinations.ai `/aipic:` flow.
-- [ ] Summary / Keywords: Gemini `/summary` and `/keywords` over real history.
+- [x] AI Picture Generation: Pollinations.ai `/aipic:` flow.
+- [x] Summary / Keywords: Gemini `/summary` and `/keywords` over real history.
 - [x] Sentiment Analysis: local TextBlob labels and insight counts.
-- [ ] Chatbot Group Interaction: `@bot` responds inside group chat context.
+- [x] Chatbot Group Interaction: `@bot` responds inside group chat context.
 
 ## Decisions
 
@@ -102,6 +102,19 @@ feature, and commit after each key point once git is initialized.
   gitignored runtime folder `Chat_System/runtime/images/`: passed.
 - 2026-05-04: Ran a brief Tk/CustomTkinter GUI construction smoke that created
   the main workspace and game window in the target Python environment: passed.
+- 2026-05-04: Commit `397bae5` recorded the CustomTkinter GUI, message/image
+  widgets, Whack-a-Mole game, generated game art, and stable socket smoke test.
+- 2026-05-04: Added `Chat_System/tests/external_smoke.py`, a manual end-to-end
+  script for real external API checks. It starts the socket server, logs in two
+  clients, sends real chat history, triggers group `@bot`, `/summary`,
+  `/keywords`, `/aipic:` image generation, and verifies the generated image
+  file exists.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python Chat_System/tests/external_smoke.py`
+  with approved localhost/network permissions: passed. Output confirmed Gemini
+  bot response, Gemini summary, Gemini keywords (`slides`, `testing notes`,
+  `demo plan`, `action items`, `project management`), and Pollinations image
+  saved under `Chat_System/runtime/images/`.
 
 ## Next Agent Notes
 
@@ -111,5 +124,4 @@ feature, and commit after each key point once git is initialized.
 - Keep `.env` local only. Never print or commit the real Gemini key.
 - Consider starting with protocol/data boundaries before GUI polish so feature
   integration stays clean.
-- Next step: finish final audit against every AGENTS.md acceptance item, then
-  commit this GUI/game/smoke-test chunk.
+- Next step: run final completion audit against every AGENTS.md acceptance item.
