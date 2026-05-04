@@ -1,0 +1,15 @@
+.env
+.DS_Store
+__pycache__/
+*.py[cod]
+*.idx
+
+Chat_System/__pycache__/
+Chat_System/.DS_Store
+Chat_System/generated/
+Chat_System/data/runtime/
+Chat_System/runtime/
+Chat_System/output/
+
+tmp/
+.cache/
