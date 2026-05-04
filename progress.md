@@ -115,6 +115,43 @@ feature, and commit after each key point once git is initialized.
   bot response, Gemini summary, Gemini keywords (`slides`, `testing notes`,
   `demo plan`, `action items`, `project management`), and Pollinations image
   saved under `Chat_System/runtime/images/`.
+- 2026-05-04: Commit `afdddd4` recorded the external API end-to-end smoke
+  validation script and updated milestone status.
+
+## Final Completion Audit
+
+- Objective: finish the AGENTS.md ICDS desktop chat system and verify it for
+  presentation.
+- Modern GUI: evidence in `Chat_System/GUI.py`, `Chat_System/ui/message_widgets.py`,
+  and GUI construction smoke. Includes login, three-column shell, online users,
+  connection status, quick actions, message cards, bot cards, image cards,
+  sentiment counts, insight panel, and leaderboard.
+- Gemini chatbot and group interaction: evidence in `services/gemini_client.py`,
+  `chat_server.py` action handlers, GUI `@bot` send path, and
+  `tests/external_smoke.py`. Real server-driven Gemini bot response passed.
+- Pollinations `/aipic:`: evidence in `services/pollinations_client.py`,
+  `chat_server.py`, `GUI.py`, image cards, and external smoke. Real image
+  download saved under gitignored `Chat_System/runtime/images/`.
+- Summary/keywords over real history: evidence in `ChatHistory`,
+  `GeminiClient.summarize`, `GeminiClient.keywords`, server handlers, GUI
+  insight rendering, and external smoke.
+- Local TextBlob sentiment: evidence in `services/sentiment.py`, server
+  `exchange` handler, GUI message tags/counts, and unit tests for Positive,
+  Neutral, Negative.
+- Whack-a-Mole leaderboard: evidence in `ui/game_window.py`,
+  `services/leaderboard.py`, server score actions, GUI leaderboard card,
+  generated asset `Chat_System/assets/whack_mole_sheet.png`, and socket smoke
+  leaderboard verification.
+- Protocol/socket preservation: evidence in unchanged `chat_utils.py` framing
+  plus explicit `protocol.py` action constants and smoke tests with two real
+  sockets.
+- Secrets/runtime hygiene: `git ls-files` confirms `.env` and runtime images
+  are not tracked; `.env.example`, `.gitignore`, and `requirements.txt` are
+  tracked.
+- Final gates run: `py_compile` passed for changed Python files; default
+  unittest suite passed 7 tests; external API smoke passed; GUI construction
+  smoke passed.
+- No known missing AGENTS.md acceptance item remains.
 
 ## Next Agent Notes
 
@@ -124,4 +161,4 @@ feature, and commit after each key point once git is initialized.
 - Keep `.env` local only. Never print or commit the real Gemini key.
 - Consider starting with protocol/data boundaries before GUI polish so feature
   integration stays clean.
-- Next step: run final completion audit against every AGENTS.md acceptance item.
+- Next step: presentation rehearsal with two visible GUI clients if desired.
