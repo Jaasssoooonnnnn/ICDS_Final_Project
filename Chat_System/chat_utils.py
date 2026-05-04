@@ -1,12 +1,21 @@
+import os
 import socket
 import time
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
+if load_dotenv is not None:
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 # use local loop back address by default
 # CHAT_IP = '155.138.134.163'
 # CHAT_IP = socket.gethostbyname(socket.gethostname())
-CHAT_IP = ''#socket.gethostbyname(socket.gethostname())
+CHAT_IP = os.getenv("CHAT_HOST", "")#socket.gethostbyname(socket.gethostname())
 
-CHAT_PORT = 1112
+CHAT_PORT = int(os.getenv("CHAT_PORT", "1112"))
 SERVER = (CHAT_IP, CHAT_PORT)
 
 menu = "\n++++ Choose one of the following commands\n \

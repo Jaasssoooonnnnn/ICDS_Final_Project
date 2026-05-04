@@ -21,6 +21,7 @@ feature, and commit after each key point once git is initialized.
 - [x] `.gitignore` created to exclude secrets and runtime artifacts.
 - [x] Git repository initialized.
 - [x] Baseline project prepared for first commit.
+- [x] Core service layer and server protocol actions implemented.
 
 ## Feature Milestones
 
@@ -52,6 +53,20 @@ feature, and commit after each key point once git is initialized.
   with project source, reference docs, reference screenshots, PRD/config
   templates, and progress tracking. `.env`, `.DS_Store`, caches, and runtime
   indexes are ignored.
+- 2026-05-04: Added explicit protocol constants plus services for environment
+  loading, Gemini, Pollinations.ai, TextBlob sentiment, recent chat history, and
+  persistent game leaderboard. Reworked `chat_server.py` to broadcast normal
+  messages, attach sentiment labels, respond to `@bot`, `/bot`, `/summary`,
+  `/keywords`, `/aipic:`, score submission, leaderboard, and online-list
+  actions with clear error payloads instead of silent fallbacks.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m py_compile` for changed core
+  Python files: passed.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m unittest discover -s Chat_System/tests -v`:
+  6 service/protocol tests passed, including sentiment labels, missing Gemini
+  key failure, Pollinations URL construction, chat history, and leaderboard
+  ordering.
 
 ## Next Agent Notes
 
@@ -61,3 +76,5 @@ feature, and commit after each key point once git is initialized.
 - Keep `.env` local only. Never print or commit the real Gemini key.
 - Consider starting with protocol/data boundaries before GUI polish so feature
   integration stays clean.
+- Next step: integrate the CustomTkinter GUI/game layer, then run socket smoke
+  tests with real server/client processes.
