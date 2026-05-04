@@ -25,12 +25,12 @@ feature, and commit after each key point once git is initialized.
 
 ## Feature Milestones
 
-- [ ] GUI: CustomTkinter desktop shell matching the reference screenshots.
+- [x] GUI: CustomTkinter desktop shell matching the reference screenshots.
 - [ ] Chatbot: Gemini-powered bot for direct client interaction.
-- [ ] Game: Tkinter Whack-a-Mole with single-player score submission.
+- [x] Game: Tkinter Whack-a-Mole with single-player score submission.
 - [ ] AI Picture Generation: Pollinations.ai `/aipic:` flow.
 - [ ] Summary / Keywords: Gemini `/summary` and `/keywords` over real history.
-- [ ] Sentiment Analysis: local TextBlob labels and insight counts.
+- [x] Sentiment Analysis: local TextBlob labels and insight counts.
 - [ ] Chatbot Group Interaction: `@bot` responds inside group chat context.
 
 ## Decisions
@@ -67,6 +67,41 @@ feature, and commit after each key point once git is initialized.
   6 service/protocol tests passed, including sentiment labels, missing Gemini
   key failure, Pollinations URL construction, chat history, and leaderboard
   ordering.
+- 2026-05-04: Commit `d477c4d` recorded the core chat services and protocol
+  actions.
+- 2026-05-04: Replaced the legacy Tk text GUI with a CustomTkinter desktop
+  workspace: login window, left online-user sidebar, central message/bot/image
+  cards, right quick actions, sentiment insights, summary/keyword panel, and
+  leaderboard card.
+- 2026-05-04: Added `ui/game_window.py` with a Tkinter `Toplevel` +
+  `Canvas` Whack-a-Mole game, countdown timer, hit detection, result panel, and
+  score submission callback.
+- 2026-05-04: Used Codex `imagegen` to create
+  `Chat_System/assets/whack_mole_sheet.png`; the game window loads it for the
+  game banner/background and result-panel art.
+- 2026-05-04: Installed missing `python-dotenv` into
+  `/opt/anaconda3/envs/chat_system` and kept it documented in
+  `requirements.txt`.
+- 2026-05-04: Added a real socket smoke test that starts the server on a test
+  port, logs in two clients, verifies online list behavior, sends a normal chat
+  message with `Positive` sentiment, submits a game score, and verifies
+  leaderboard response. The first sandbox run could not bind localhost; rerun
+  with approved local socket permissions passed.
+- 2026-05-04: Hardened user chat index loading so empty/corrupt ignored runtime
+  `.idx` files are rebuilt instead of closing the login socket with a pickle
+  EOF error.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m py_compile` for server, GUI,
+  UI, game, state machine, and smoke-test files: passed.
+- 2026-05-04: Ran
+  `/opt/anaconda3/envs/chat_system/bin/python -m unittest discover -s Chat_System/tests -v`:
+  7 tests passed, including real socket server/client smoke.
+- 2026-05-04: Ran real Gemini smoke calls for bot reply, summary, and keywords
+  using the configured local `.env` key: passed. No secret was printed.
+- 2026-05-04: Ran real Pollinations.ai smoke generation; image saved under the
+  gitignored runtime folder `Chat_System/runtime/images/`: passed.
+- 2026-05-04: Ran a brief Tk/CustomTkinter GUI construction smoke that created
+  the main workspace and game window in the target Python environment: passed.
 
 ## Next Agent Notes
 
@@ -76,5 +111,5 @@ feature, and commit after each key point once git is initialized.
 - Keep `.env` local only. Never print or commit the real Gemini key.
 - Consider starting with protocol/data boundaries before GUI polish so feature
   integration stays clean.
-- Next step: integrate the CustomTkinter GUI/game layer, then run socket smoke
-  tests with real server/client processes.
+- Next step: finish final audit against every AGENTS.md acceptance item, then
+  commit this GUI/game/smoke-test chunk.

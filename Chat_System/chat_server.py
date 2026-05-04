@@ -142,7 +142,7 @@ class Server:
         try:
             with index_path.open("rb") as handle:
                 return pkl.load(handle)
-        except IOError:
+        except (IOError, EOFError, pkl.UnpicklingError):
             return indexer.Index(str(BASE_DIR / name))
 
     def save_index(self, name):
@@ -354,7 +354,7 @@ class Server:
             elif action == ACTION_DISCONNECT:
                 self.handle_disconnect(from_sock)
             elif action == ACTION_BOT_REQUEST:
-                self.handle_bot(msg.get("message", ""), from_sock, broadcast=False)
+                self.handle_bot(msg.get("message", ""), from_sock, broadcast=msg.get("scope") == "group")
             elif action == ACTION_SUMMARY_REQUEST:
                 self.handle_summary(from_sock)
             elif action == ACTION_KEYWORDS_REQUEST:

@@ -5,6 +5,15 @@ Created on Sun Apr  5 00:00:32 2015
 """
 from chat_utils import *
 import json
+from protocol import (
+    ACTION_BOT_RESPONSE,
+    ACTION_ERROR,
+    ACTION_EXCHANGE,
+    ACTION_IMAGE_RESPONSE,
+    ACTION_KEYWORDS_RESPONSE,
+    ACTION_LEADERBOARD,
+    ACTION_SUMMARY_RESPONSE,
+)
 
 class ClientSM:
     def __init__(self, s):
@@ -115,6 +124,24 @@ class ClientSM:
                     self.out_msg += '. Chat away!\n\n'
                     self.out_msg += '------------------------------------\n'
                     self.state = S_CHATTING
+                elif peer_msg["action"] in [ACTION_BOT_RESPONSE, ACTION_SUMMARY_RESPONSE, ACTION_KEYWORDS_RESPONSE]:
+                    self.out_msg += peer_msg.get("from", "ICDS Bot") + ": " + peer_msg.get("message", "") + "\n"
+                elif peer_msg["action"] == ACTION_IMAGE_RESPONSE:
+                    self.out_msg += (
+                        peer_msg.get("from", "AI Image")
+                        + " generated image for "
+                        + peer_msg.get("prompt", "")
+                        + ": "
+                        + peer_msg.get("path", peer_msg.get("url", ""))
+                        + "\n"
+                    )
+                elif peer_msg["action"] == ACTION_LEADERBOARD:
+                    self.out_msg += "Leaderboard:\n" + "\n".join(
+                        f"{entry.get('rank')}. {entry.get('player')} - {entry.get('score')}"
+                        for entry in peer_msg.get("entries", [])
+                    ) + "\n"
+                elif peer_msg["action"] == ACTION_ERROR:
+                    self.out_msg += "Server error: " + peer_msg.get("error", "") + "\n"
 
 #==============================================================================
 # Start chatting, 'bye' for quit
@@ -133,8 +160,26 @@ class ClientSM:
                     self.out_msg += "(" + peer_msg["from"] + " joined)\n"
                 elif peer_msg["action"] == "disconnect":
                     self.state = S_LOGGEDIN
-                else:
-                    self.out_msg += peer_msg["from"] + peer_msg["message"]
+                elif peer_msg["action"] == ACTION_EXCHANGE:
+                    self.out_msg += peer_msg["from"] + ": " + peer_msg["message"] + "\n"
+                elif peer_msg["action"] in [ACTION_BOT_RESPONSE, ACTION_SUMMARY_RESPONSE, ACTION_KEYWORDS_RESPONSE]:
+                    self.out_msg += peer_msg.get("from", "ICDS Bot") + ": " + peer_msg.get("message", "") + "\n"
+                elif peer_msg["action"] == ACTION_IMAGE_RESPONSE:
+                    self.out_msg += (
+                        peer_msg.get("from", "AI Image")
+                        + " generated image for "
+                        + peer_msg.get("prompt", "")
+                        + ": "
+                        + peer_msg.get("path", peer_msg.get("url", ""))
+                        + "\n"
+                    )
+                elif peer_msg["action"] == ACTION_LEADERBOARD:
+                    self.out_msg += "Leaderboard:\n" + "\n".join(
+                        f"{entry.get('rank')}. {entry.get('player')} - {entry.get('score')}"
+                        for entry in peer_msg.get("entries", [])
+                    ) + "\n"
+                elif peer_msg["action"] == ACTION_ERROR:
+                    self.out_msg += "Server error: " + peer_msg.get("error", "") + "\n"
 
 
             # Display the menu again
