@@ -253,3 +253,12 @@ feature, and commit after each key point once git is initialized.
 - Fixed an additional Windows robustness issue where a reset socket could
   raise `ConnectionResetError` and terminate the server; the server now logs
   out reset clients cleanly.
+
+## 2026-05-09 Local Launch Fix
+
+- Fixed Windows local startup failure where the GUI client tried to connect to
+  an empty host string because `CHAT_HOST` was missing. The default chat host is
+  now `127.0.0.1`, so the app can run without a local `.env`.
+- Tests run:
+  - `python -m py_compile Chat_System\chat_utils.py Chat_System\chat_server.py Chat_System\chat_gui_client.py`: passed.
+  - `python -m unittest Chat_System.tests.test_server_smoke -v`: passed.

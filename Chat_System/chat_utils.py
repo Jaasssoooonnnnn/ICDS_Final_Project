@@ -13,7 +13,7 @@ if load_dotenv is not None:
 # use local loop back address by default
 # CHAT_IP = '155.138.134.163'
 # CHAT_IP = socket.gethostbyname(socket.gethostname())
-CHAT_IP = os.getenv("CHAT_HOST", "")#socket.gethostbyname(socket.gethostname())
+CHAT_IP = os.getenv("CHAT_HOST", "127.0.0.1")#socket.gethostbyname(socket.gethostname())
 
 CHAT_PORT = int(os.getenv("CHAT_PORT", "1112"))
 SERVER = (CHAT_IP, CHAT_PORT)
