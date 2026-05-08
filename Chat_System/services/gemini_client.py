@@ -25,9 +25,10 @@ class GeminiClient:
             raise RuntimeError("Gemini returned an empty response")
         return text.strip()
 
-    def bot_reply(self, user_message: str, context: str) -> str:
+    def bot_reply(self, user_message: str, context: str, personality: str = "concise helpful teammate") -> str:
         prompt = (
             "You are ICDS Bot, a concise helpful chatbot inside a group chat.\n"
+            f"Current personality: {personality}.\n"
             "Use the recent chat context when it helps. Identify yourself naturally as ICDS Bot.\n\n"
             f"Recent context:\n{context}\n\n"
             f"User request:\n{user_message}\n\n"

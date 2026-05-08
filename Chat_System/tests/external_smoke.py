@@ -3,7 +3,7 @@
 This script is intentionally not named test_*.py because it calls Gemini and
 Pollinations.ai. Run it before presentation when network/API quota is available:
 
-    /opt/anaconda3/envs/chat_system/bin/python Chat_System/tests/external_smoke.py
+    python Chat_System/tests/external_smoke.py
 """
 
 from __future__ import annotations
@@ -17,9 +17,31 @@ import time
 from pathlib import Path
 
 CHAT_ROOT = Path(__file__).resolve().parents[1]
-PYTHON = "/opt/anaconda3/envs/chat_system/bin/python"
+PROJECT_ROOT = CHAT_ROOT.parent
+PYTHON = os.environ.get("CHAT_TEST_PYTHON", sys.executable)
 PORT = int(os.getenv("ICDS_EXTERNAL_SMOKE_PORT", "19114"))
 SIZE_SPEC = 5
+
+
+def load_env_file():
+    env_path = PROJECT_ROOT / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        if not line or line.lstrip().startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+def require_external_config():
+    load_env_file()
+    key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not key or key == "replace-with-your-gemini-api-key":
+        raise SystemExit(
+            "external smoke skipped: set GEMINI_API_KEY in .env or environment "
+            "to test real Gemini bot, summary, and keyword calls"
+        )
 
 
 def send_json(sock, payload):
@@ -72,6 +94,7 @@ def login(name):
 
 
 def main():
+    require_external_config()
     env = os.environ.copy()
     env["CHAT_HOST"] = "127.0.0.1"
     env["CHAT_PORT"] = str(PORT)

@@ -62,6 +62,7 @@ class Server:
         self.leaderboard = Leaderboard()
         self.pollinations = PollinationsClient()
         self._gemini = None
+        self.bot_personality = "concise helpful teammate"
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -108,7 +109,11 @@ class Server:
         self.all_sockets.append(sock)
 
     def login(self, sock):
-        raw = myrecv(sock)
+        try:
+            raw = myrecv(sock)
+        except OSError:
+            self.drop_new_client(sock)
+            return
         if not raw:
             self.drop_new_client(sock)
             return
@@ -191,6 +196,9 @@ class Server:
         if lowered == "/keywords":
             self.handle_keywords(from_sock)
             return
+        if lowered.startswith("/personality:") or lowered.startswith("/botpersona:"):
+            self.handle_personality(from_sock, message)
+            return
         if lowered.startswith("/bot"):
             prompt = message[4:].strip() or "Please help with this discussion."
             self.handle_bot(prompt, from_sock, broadcast=False)
@@ -220,7 +228,7 @@ class Server:
     def handle_bot(self, prompt, from_sock, broadcast=False):
         from_name = self.logged_sock2name[from_sock]
         try:
-            reply = self.gemini.bot_reply(prompt, self.history.context())
+            reply = self.gemini.bot_reply(prompt, self.history.context(), self.bot_personality)
             record = self.history.add(BOT_NAME, reply, kind="bot")
             payload = {
                 "action": ACTION_BOT_RESPONSE,
@@ -246,6 +254,26 @@ class Server:
             self.broadcast(payload)
         else:
             self.send_json(from_sock, payload)
+
+    def handle_personality(self, from_sock, msg):
+        separator = ":" if ":" in msg else " "
+        personality = msg.split(separator, 1)[1].strip()
+        if not personality:
+            raise ValueError("Bot personality is required after /personality:")
+        if len(personality) > 180:
+            raise ValueError("Bot personality must be 180 characters or fewer")
+        self.bot_personality = personality
+        from_name = self.logged_sock2name[from_sock]
+        payload = {
+            "action": ACTION_BOT_RESPONSE,
+            "status": "ok",
+            "from": BOT_NAME,
+            "sender": BOT_NAME,
+            "message": f"ICDS Bot personality updated to: {personality}",
+            "timestamp": time.strftime("%H:%M", time.localtime()),
+            "requester": from_name,
+        }
+        self.broadcast(payload)
 
     def handle_summary(self, from_sock):
         try:
@@ -325,7 +353,11 @@ class Server:
         self.broadcast(payload)
 
     def handle_msg(self, from_sock):
-        raw = myrecv(from_sock)
+        try:
+            raw = myrecv(from_sock)
+        except OSError:
+            self.logout(from_sock)
+            return
         if not raw:
             self.logout(from_sock)
             return

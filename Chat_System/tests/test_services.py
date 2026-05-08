@@ -45,6 +45,18 @@ class ServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "GEMINI_API_KEY"):
             GeminiClient(api_key="")
 
+    def test_gemini_prompt_includes_personality(self):
+        client = GeminiClient.__new__(GeminiClient)
+        prompts = []
+
+        def fake_generate(prompt):
+            prompts.append(prompt)
+            return "ok"
+
+        client._generate = fake_generate
+        self.assertEqual(client.bot_reply("help", "Alice: hi", "warm project mentor"), "ok")
+        self.assertIn("warm project mentor", prompts[0])
+
     def test_pollinations_url_encodes_prompt(self):
         client = PollinationsClient(base_url="https://image.pollinations.ai/prompt", output_dir=Path(tempfile.gettempdir()))
         url = client.image_url("purple robot helper")

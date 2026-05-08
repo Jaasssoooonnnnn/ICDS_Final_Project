@@ -220,3 +220,36 @@ feature, and commit after each key point once git is initialized.
 - Consider starting with protocol/data boundaries before GUI polish so feature
   integration stays clean.
 - Next step: presentation rehearsal with two visible GUI clients if desired.
+
+## 2026-05-09 Completion Pass
+
+- Re-read `Final Project Guideline.docx` and
+  `Bonus Topics - Implementation Support Guide.docx`.
+- Confirmed Git repository health: `main` tracks `origin/main`; existing
+  feature commits are present; `.env` and runtime folders are ignored.
+- Installed dependencies from `requirements.txt` into the active Python
+  environment so local tests can run on Windows.
+- Fixed the server smoke test interpreter path by using `sys.executable` with
+  optional `CHAT_TEST_PYTHON` override instead of the previous hard-coded
+  `/opt/anaconda3/envs/chat_system/bin/python` path.
+- Added Gemini bot personality support through `/personality:` and
+  `/botpersona:` commands to satisfy the chatbot context/personality guideline.
+- Added `README.md`, `docs/presentation_script.md`, and
+  `docs/slides_outline.md` so the project has clear run instructions,
+  requirement coverage, demo flow, slide content, and pi-mono usage notes.
+- Tests run in this pass:
+  - `python -m pip install -r requirements.txt`: passed.
+  - PowerShell-expanded `python -m py_compile` over all `Chat_System` Python
+    files: passed after edits.
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed and generated
+    `tmp/ui_refactor/main_chat_refactor.png`,
+    `tmp/ui_refactor/game_live_refactor.png`, and
+    `tmp/ui_refactor/game_result_refactor.png`.
+  - `python Chat_System\tests\external_smoke.py`: skipped with a clear message
+    because this local checkout does not have a real `GEMINI_API_KEY` in
+    `.env` or the environment. The script now checks this before starting the
+    server.
+- Fixed an additional Windows robustness issue where a reset socket could
+  raise `ConnectionResetError` and terminate the server; the server now logs
+  out reset clients cleanly.

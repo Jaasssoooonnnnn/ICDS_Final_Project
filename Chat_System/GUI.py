@@ -482,6 +482,10 @@ class GUI:
         if lower.startswith("/bot "):
             self._send_bot_request(msg[5:].strip(), direct=True)
             return
+        if lower.startswith("/personality:") or lower.startswith("/botpersona:"):
+            self.add_message(self.name, msg, sentiment="Neutral", outgoing=True)
+            self._safe_send({"action": "exchange", "sender": self.name, "message": msg})
+            return
         if lower.startswith("@bot"):
             self.add_message(self.name, msg, outgoing=True)
             self._safe_send(

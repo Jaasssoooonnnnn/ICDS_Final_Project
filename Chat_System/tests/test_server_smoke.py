@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 CHAT_ROOT = Path(__file__).resolve().parents[1]
-PYTHON = "/opt/anaconda3/envs/chat_system/bin/python"
+PYTHON = os.environ.get("CHAT_TEST_PYTHON", sys.executable)
 PORT = 19112
 SIZE_SPEC = 5
 
