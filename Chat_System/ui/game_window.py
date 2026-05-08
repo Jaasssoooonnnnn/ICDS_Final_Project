@@ -56,12 +56,12 @@ class WhackAMoleWindow:
         self.canvas.pack(fill="both", expand=True)
 
         self.holes = [
-            (230, 292),
-            (520, 292),
-            (810, 292),
-            (230, 468),
-            (520, 468),
-            (810, 468),
+            (230, 350),
+            (520, 350),
+            (810, 350),
+            (230, 525),
+            (520, 525),
+            (810, 525),
         ]
 
         self._load_assets()

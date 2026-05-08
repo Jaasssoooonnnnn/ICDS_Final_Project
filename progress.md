@@ -262,3 +262,23 @@ feature, and commit after each key point once git is initialized.
 - Tests run:
   - `python -m py_compile Chat_System\chat_utils.py Chat_System\chat_server.py Chat_System\chat_gui_client.py`: passed.
   - `python -m unittest Chat_System.tests.test_server_smoke -v`: passed.
+
+## 2026-05-09 Visual Repair From Open-Source References
+
+- User reported that the GUI did not visibly follow open-source references and
+  that the Whack-a-Mole sprite appeared in the sky.
+- Searched and used open-source UI references:
+  - `mckaywrigley/chatbot-ui` for the AI chat workspace pattern.
+  - `Kiranism/next-shadcn-dashboard-starter` for a shadcn-style dashboard
+    shell, compact cards, neutral surfaces, and right action panel styling.
+- Added `docs/design_references.md` with the exact repositories and adaptation
+  notes.
+- Reworked `Chat_System/GUI.py` toward a darker sidebar, wider right panel,
+  clearer dashboard cards, larger default window, and less truncated action
+  content.
+- Reworked `Chat_System/ui/message_widgets.py` message and media cards with
+  better spacing, larger readable text, and stronger border hierarchy.
+- Fixed `Chat_System/ui/game_window.py` mole spawn coordinates so moles emerge
+  from the holes instead of floating above the field.
+- Updated GUI smoke geometry to capture the intended 1440x860 desktop layout
+  and full 1040x700 game window.

@@ -32,23 +32,25 @@ ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
 COLORS = {
-    "app_bg": "#ffffff",
-    "sidebar": "#f8faff",
-    "center": "#ffffff",
-    "chat_bg": "#fbfcff",
-    "right": "#ffffff",
-    "border": "#e3e8f4",
-    "soft": "#f4f6fb",
-    "soft2": "#f8f9fd",
-    "text": "#172033",
-    "muted": "#71809c",
-    "purple": "#635bff",
-    "purple2": "#7b61ff",
-    "green": "#22c55e",
-    "blue": "#2f80ed",
-    "pink": "#ec4899",
-    "teal": "#14b8a6",
-    "orange": "#f59e0b",
+    "app_bg": "#f3f6fb",
+    "sidebar": "#0f172a",
+    "center": "#f8fafc",
+    "chat_bg": "#ffffff",
+    "right": "#f8fafc",
+    "border": "#dde5f0",
+    "soft": "#edf2f8",
+    "soft2": "#f6f8fb",
+    "text": "#101828",
+    "muted": "#667085",
+    "inverse": "#f8fafc",
+    "inverse_muted": "#94a3b8",
+    "purple": "#4f46e5",
+    "purple2": "#6366f1",
+    "green": "#12b76a",
+    "blue": "#2563eb",
+    "pink": "#db2777",
+    "teal": "#0d9488",
+    "orange": "#d97706",
 }
 
 FONT = "Helvetica"
@@ -63,10 +65,10 @@ NAV_ITEMS = [
 ]
 
 ACTION_META = [
-    ("Start Game", "Play a quick team game", "Game", "#635bff"),
-    ("/summary", "Get summary of this chat", "Summary", "#2f80ed"),
-    ("/keywords", "Extract important keywords", "Keywords", "#14b8a6"),
-    ("/aipic", "Generate AI image from prompt", "AI Pic", "#ec4899"),
+    ("Start Game", "Play and submit score", "Game", "#4f46e5"),
+    ("/summary", "Summarize chat", "Summary", "#2563eb"),
+    ("/keywords", "Extract topic tags", "Keywords", "#0d9488"),
+    ("/aipic", "Generate image", "AI Pic", "#db2777"),
 ]
 
 
@@ -187,14 +189,14 @@ class GUI:
     def layout(self, name):
         self.Window.deiconify()
         self.Window.title("ICDS Chat")
-        self.Window.geometry("1220x780")
-        self.Window.minsize(1060, 680)
+        self.Window.geometry("1440x860")
+        self.Window.minsize(1240, 760)
         self.Window.configure(fg_color=COLORS["app_bg"])
         self.Window.protocol("WM_DELETE_WINDOW", self.close)
 
-        self.Window.grid_columnconfigure(0, minsize=250, weight=0)
+        self.Window.grid_columnconfigure(0, minsize=300, weight=0)
         self.Window.grid_columnconfigure(1, weight=1)
-        self.Window.grid_columnconfigure(2, minsize=292, weight=0)
+        self.Window.grid_columnconfigure(2, minsize=420, weight=0)
         self.Window.grid_rowconfigure(0, weight=1)
 
         self._build_sidebar(name)
@@ -211,32 +213,32 @@ class GUI:
         sidebar.grid_rowconfigure(5, weight=1)
 
         brand = ctk.CTkFrame(sidebar, fg_color="transparent")
-        brand.grid(row=0, column=0, sticky="ew", padx=22, pady=(22, 16))
+        brand.grid(row=0, column=0, sticky="ew", padx=24, pady=(26, 22))
         ctk.CTkLabel(
             brand,
-            text="...",
-            width=32,
-            height=30,
-            corner_radius=9,
-            fg_color=COLORS["purple"],
+            text="IC",
+            width=38,
+            height=38,
+            corner_radius=11,
+            fg_color="#2563eb",
             text_color="#ffffff",
             font=ctk.CTkFont(family=FONT, size=14, weight="bold"),
         ).pack(side="left")
         ctk.CTkLabel(
             brand,
             text="ICDS Chat",
-            font=ctk.CTkFont(family=FONT, size=18, weight="bold"),
-            text_color=COLORS["text"],
+            font=ctk.CTkFont(family=FONT, size=20, weight="bold"),
+            text_color=COLORS["inverse"],
         ).pack(side="left", padx=(12, 0))
 
-        user = ctk.CTkFrame(sidebar, fg_color="transparent")
-        user.grid(row=1, column=0, sticky="ew", padx=20, pady=(0, 20))
-        self._avatar(user, name, size=48, color="#2f80ed").pack(side="left")
+        user = ctk.CTkFrame(sidebar, fg_color="#172033", corner_radius=16, border_width=1, border_color="#253149")
+        user.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 24))
+        self._avatar(user, name, size=46, color="#2563eb").pack(side="left", padx=(14, 0), pady=14)
         info = ctk.CTkFrame(user, fg_color="transparent")
         info.pack(side="left", padx=(12, 0), fill="x", expand=True)
-        ctk.CTkLabel(info, text=name, anchor="w", text_color=COLORS["text"], font=ctk.CTkFont(size=13, weight="bold")).pack(fill="x")
-        ctk.CTkLabel(info, text="Online", anchor="w", text_color=COLORS["muted"], font=ctk.CTkFont(size=11)).pack(fill="x")
-        ctk.CTkLabel(user, text="v", text_color=COLORS["muted"], font=ctk.CTkFont(size=13)).pack(side="right")
+        ctk.CTkLabel(info, text=name, anchor="w", text_color=COLORS["inverse"], font=ctk.CTkFont(size=14, weight="bold")).pack(fill="x")
+        ctk.CTkLabel(info, text="Online workspace", anchor="w", text_color=COLORS["inverse_muted"], font=ctk.CTkFont(size=11)).pack(fill="x")
+        ctk.CTkLabel(user, text="●", text_color=COLORS["green"], font=ctk.CTkFont(size=12)).pack(side="right", padx=(0, 14))
 
         nav = ctk.CTkFrame(sidebar, fg_color="transparent")
         nav.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 16))
@@ -247,24 +249,24 @@ class GUI:
                 text=("  " + label),
                 anchor="w",
                 height=44,
-                corner_radius=10,
+                corner_radius=12,
                 fg_color=COLORS["purple"] if selected else "transparent",
-                hover_color="#ebe9ff",
-                text_color="#ffffff" if selected else "#26324d",
+                hover_color="#1e293b",
+                text_color="#ffffff" if selected else "#cbd5e1",
                 font=ctk.CTkFont(size=13, weight="bold" if selected else "normal"),
                 command=self._nav_action(key),
             )
             btn.pack(fill="x", pady=4)
             self.nav_buttons[key] = btn
 
-        ctk.CTkFrame(sidebar, height=1, fg_color=COLORS["border"]).grid(row=3, column=0, sticky="ew", padx=20, pady=(2, 14))
+        ctk.CTkFrame(sidebar, height=1, fg_color="#273247").grid(row=3, column=0, sticky="ew", padx=20, pady=(2, 16))
 
         users_header = ctk.CTkFrame(sidebar, fg_color="transparent")
         users_header.grid(row=4, column=0, sticky="ew", padx=20, pady=(0, 8))
-        ctk.CTkLabel(users_header, text="ONLINE USERS", text_color=COLORS["muted"], font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
+        ctk.CTkLabel(users_header, text="ONLINE USERS", text_color=COLORS["inverse_muted"], font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
         ctk.CTkLabel(users_header, text="●", text_color=COLORS["green"], font=ctk.CTkFont(size=12)).pack(side="left", padx=(0, 7))
 
-        self.online_list_frame = ctk.CTkScrollableFrame(sidebar, fg_color="transparent", scrollbar_button_color="#d7deec")
+        self.online_list_frame = ctk.CTkScrollableFrame(sidebar, fg_color="transparent", scrollbar_button_color="#334155")
         self.online_list_frame.grid(row=5, column=0, sticky="nsew", padx=18, pady=(0, 16))
         self._render_online_users()
 
@@ -274,10 +276,10 @@ class GUI:
             height=36,
             corner_radius=10,
             fg_color="#ffffff",
-            text_color="#26324d",
+            text_color="#111827",
             border_width=1,
-            border_color=COLORS["border"],
-            hover_color="#edf0fb",
+            border_color="#dbe3ef",
+            hover_color="#f1f5f9",
             command=self._request_online_users,
         ).grid(row=6, column=0, sticky="ew", padx=18, pady=(0, 16))
 
@@ -287,46 +289,46 @@ class GUI:
         center.grid_rowconfigure(1, weight=1)
         center.grid_columnconfigure(0, weight=1)
 
-        header = ctk.CTkFrame(center, fg_color="#ffffff", corner_radius=0, height=76)
+        header = ctk.CTkFrame(center, fg_color="#ffffff", corner_radius=0, height=86)
         header.grid(row=0, column=0, sticky="ew")
         header.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(
             header,
             text="grp",
-            width=44,
-            height=44,
-            corner_radius=22,
+            width=52,
+            height=52,
+            corner_radius=18,
             fg_color=COLORS["purple"],
             text_color="#ffffff",
-            font=ctk.CTkFont(size=12, weight="bold"),
-        ).grid(row=0, column=0, rowspan=2, padx=(22, 12), pady=16)
+            font=ctk.CTkFont(size=13, weight="bold"),
+        ).grid(row=0, column=0, rowspan=2, padx=(28, 14), pady=17)
         ctk.CTkLabel(
             header,
             text="General Group Chat",
             text_color=COLORS["text"],
-            font=ctk.CTkFont(size=18, weight="bold"),
-        ).grid(row=0, column=1, sticky="sw", pady=(17, 0))
+            font=ctk.CTkFont(size=22, weight="bold"),
+        ).grid(row=0, column=1, sticky="sw", pady=(18, 0))
         self.member_count_label = ctk.CTkLabel(
             header,
             text="●  connected room",
             text_color=COLORS["green"],
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=13),
         )
         self.member_count_label.grid(row=1, column=1, sticky="nw", pady=(0, 15))
         self.status_pill = ctk.CTkLabel(
             header,
             text="Connecting",
-            height=30,
-            corner_radius=9,
-            fg_color=COLORS["soft2"],
+            height=34,
+            corner_radius=12,
+            fg_color="#ecfdf3",
             text_color=COLORS["text"],
             font=ctk.CTkFont(size=11, weight="bold"),
         )
-        self.status_pill.grid(row=0, column=2, rowspan=2, padx=(8, 18), pady=22)
+        self.status_pill.grid(row=0, column=2, rowspan=2, padx=(8, 26), pady=24)
 
         ctk.CTkFrame(center, height=1, fg_color=COLORS["border"]).grid(row=0, column=0, sticky="sew")
 
-        self.chat_scroll = ctk.CTkScrollableFrame(center, fg_color=COLORS["chat_bg"], scrollbar_button_color="#d7deec")
+        self.chat_scroll = ctk.CTkScrollableFrame(center, fg_color="#f8fafc", scrollbar_button_color="#cbd5e1")
         self.chat_scroll.grid(row=1, column=0, sticky="nsew")
         self.chat_scroll.grid_columnconfigure(0, weight=1)
         self._date_divider()
@@ -334,35 +336,35 @@ class GUI:
         composer = ctk.CTkFrame(center, fg_color="#ffffff", corner_radius=0)
         composer.grid(row=2, column=0, sticky="ew")
         composer.grid_columnconfigure(1, weight=1)
-        inner = ctk.CTkFrame(composer, fg_color="#ffffff", corner_radius=13, border_width=1, border_color=COLORS["border"])
-        inner.grid(row=0, column=0, columnspan=3, sticky="ew", padx=22, pady=14)
+        inner = ctk.CTkFrame(composer, fg_color="#ffffff", corner_radius=18, border_width=1, border_color=COLORS["border"])
+        inner.grid(row=0, column=0, columnspan=3, sticky="ew", padx=28, pady=18)
         inner.grid_columnconfigure(2, weight=1)
-        ctk.CTkButton(inner, text=":)", width=38, height=38, corner_radius=10, fg_color="transparent", hover_color="#edf0fb", text_color="#52617d").grid(row=0, column=0, padx=(8, 0), pady=8)
-        ctk.CTkButton(inner, text="+", width=38, height=38, corner_radius=10, fg_color="transparent", hover_color="#edf0fb", text_color="#52617d").grid(row=0, column=1, padx=(0, 4), pady=8)
+        ctk.CTkButton(inner, text=":)", width=38, height=38, corner_radius=12, fg_color="#f1f5f9", hover_color="#e2e8f0", text_color="#475569").grid(row=0, column=0, padx=(10, 6), pady=10)
+        ctk.CTkButton(inner, text="+", width=38, height=38, corner_radius=12, fg_color="#f1f5f9", hover_color="#e2e8f0", text_color="#475569").grid(row=0, column=1, padx=(0, 8), pady=10)
         self.entryMsg = ctk.CTkEntry(
             inner,
-            height=42,
-            corner_radius=9,
+            height=44,
+            corner_radius=12,
             border_width=0,
             fg_color="#ffffff",
             placeholder_text="Type a message...",
             text_color=COLORS["text"],
         )
-        self.entryMsg.grid(row=0, column=2, sticky="ew", padx=(0, 8), pady=8)
+        self.entryMsg.grid(row=0, column=2, sticky="ew", padx=(0, 10), pady=10)
         self.entryMsg.bind("<Return>", lambda event: self.sendButton(self.entryMsg.get()))
         ctk.CTkButton(
             inner,
             text="Send",
-            width=96,
-            height=42,
-            corner_radius=9,
+            width=112,
+            height=44,
+            corner_radius=12,
             fg_color=COLORS["purple"],
-            hover_color="#5148e5",
+            hover_color="#4338ca",
             command=lambda: self.sendButton(self.entryMsg.get()),
-        ).grid(row=0, column=3, padx=(0, 8), pady=8)
+        ).grid(row=0, column=3, padx=(0, 10), pady=10)
 
     def _build_right_panel(self):
-        panel = ctk.CTkScrollableFrame(self.Window, fg_color=COLORS["right"], corner_radius=0, scrollbar_button_color="#d7deec")
+        panel = ctk.CTkScrollableFrame(self.Window, fg_color=COLORS["right"], corner_radius=0, scrollbar_button_color="#cbd5e1")
         panel.grid(row=0, column=2, sticky="nsew")
         panel.grid_columnconfigure(0, weight=1)
 
@@ -417,22 +419,22 @@ class GUI:
         self._render_leaderboard()
 
     def _panel_card(self, master, title, icon):
-        card = ctk.CTkFrame(master, fg_color="#ffffff", corner_radius=13, border_width=1, border_color=COLORS["border"])
-        card.grid(sticky="ew", padx=16, pady=(18, 0))
+        card = ctk.CTkFrame(master, fg_color="#ffffff", corner_radius=18, border_width=1, border_color=COLORS["border"])
+        card.grid(sticky="ew", padx=18, pady=(18, 0))
         header = ctk.CTkFrame(card, fg_color="transparent")
-        header.pack(fill="x", padx=12, pady=(12, 8))
-        ctk.CTkLabel(header, text=icon, width=24, height=24, corner_radius=12, fg_color=COLORS["soft2"], text_color=COLORS["purple"], font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
-        ctk.CTkLabel(header, text=title, text_color=COLORS["text"], font=ctk.CTkFont(size=14, weight="bold")).pack(side="left", padx=(9, 0))
+        header.pack(fill="x", padx=16, pady=(16, 10))
+        ctk.CTkLabel(header, text=icon, width=28, height=28, corner_radius=10, fg_color="#eef2ff", text_color=COLORS["purple"], font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
+        ctk.CTkLabel(header, text=title, text_color=COLORS["text"], font=ctk.CTkFont(size=15, weight="bold")).pack(side="left", padx=(10, 0))
         return card
 
     def _action_row(self, master, title, subtitle, action, color):
-        row = ctk.CTkFrame(master, fg_color="#ffffff", corner_radius=10, border_width=1, border_color=COLORS["border"])
-        icon = ctk.CTkLabel(row, text=action[:2], width=42, height=42, corner_radius=11, fg_color=color, text_color="#ffffff", font=ctk.CTkFont(size=11, weight="bold"))
-        icon.pack(side="left", padx=10, pady=10)
+        row = ctk.CTkFrame(master, width=300, height=72, fg_color="#fbfcfe", corner_radius=14, border_width=1, border_color=COLORS["border"])
+        row.pack_propagate(False)
+        icon = ctk.CTkLabel(row, text=action[:2], width=40, height=40, corner_radius=12, fg_color=color, text_color="#ffffff", font=ctk.CTkFont(size=11, weight="bold"))
+        icon.pack(side="left", padx=12, pady=12)
         text = ctk.CTkFrame(row, fg_color="transparent")
-        text.pack(side="left", fill="both", expand=True, pady=8)
-        ctk.CTkLabel(text, text=title, anchor="w", text_color=COLORS["text"], font=ctk.CTkFont(size=12, weight="bold")).pack(fill="x")
-        ctk.CTkLabel(text, text=subtitle, anchor="w", text_color=COLORS["muted"], font=ctk.CTkFont(size=10)).pack(fill="x")
+        text.pack(side="left", fill="both", expand=True, pady=18, padx=(0, 10))
+        ctk.CTkLabel(text, text=title, width=190, anchor="w", text_color=COLORS["text"], font=ctk.CTkFont(size=13, weight="bold")).pack(fill="x")
         row.bind("<Button-1>", lambda _event: self._run_quick_action(action))
         for child in row.winfo_children():
             child.bind("<Button-1>", lambda _event: self._run_quick_action(action))
@@ -457,11 +459,11 @@ class GUI:
 
     def _date_divider(self):
         row = ctk.CTkFrame(self.chat_scroll, fg_color="transparent")
-        row.pack(fill="x", padx=22, pady=(14, 10))
+        row.pack(fill="x", padx=28, pady=(18, 14))
         row.grid_columnconfigure((0, 2), weight=1)
-        ctk.CTkFrame(row, height=1, fg_color=COLORS["border"]).grid(row=0, column=0, sticky="ew", padx=(80, 12))
+        ctk.CTkFrame(row, height=1, fg_color=COLORS["border"]).grid(row=0, column=0, sticky="ew", padx=(120, 12))
         ctk.CTkLabel(row, text="Today", height=24, corner_radius=12, fg_color=COLORS["soft"], text_color="#525b70", font=ctk.CTkFont(size=10, weight="bold")).grid(row=0, column=1)
-        ctk.CTkFrame(row, height=1, fg_color=COLORS["border"]).grid(row=0, column=2, sticky="ew", padx=(12, 80))
+        ctk.CTkFrame(row, height=1, fg_color=COLORS["border"]).grid(row=0, column=2, sticky="ew", padx=(12, 120))
 
     def sendButton(self, msg):
         msg = msg.strip()
@@ -603,15 +605,15 @@ class GUI:
             text=text,
             sentiment=sentiment,
             outgoing=outgoing,
-        ).pack(fill="x", padx=20, pady=2)
+        ).pack(fill="x", padx=28, pady=4)
         self._scroll_to_bottom()
 
     def add_bot_card(self, text, title="ICDS Bot"):
-        BotCard(self.chat_scroll, title=title, timestamp=self._timestamp(), text=text).pack(fill="x", padx=20, pady=3)
+        BotCard(self.chat_scroll, title=title, timestamp=self._timestamp(), text=text).pack(fill="x", padx=28, pady=5)
         self._scroll_to_bottom()
 
     def add_image_card(self, payload):
-        ImageCard(self.chat_scroll, payload=payload, timestamp=self._timestamp()).pack(fill="x", padx=20, pady=3)
+        ImageCard(self.chat_scroll, payload=payload, timestamp=self._timestamp()).pack(fill="x", padx=28, pady=5)
         self._scroll_to_bottom()
 
     def request_summary(self):
@@ -703,7 +705,7 @@ class GUI:
             row = ctk.CTkFrame(self.online_list_frame, fg_color="transparent")
             row.pack(fill="x", pady=5)
             self._avatar(row, user, size=36).pack(side="left")
-            ctk.CTkLabel(row, text=user, anchor="w", text_color=COLORS["text"], font=ctk.CTkFont(size=12)).pack(side="left", fill="x", expand=True, padx=(10, 4))
+            ctk.CTkLabel(row, text=user, anchor="w", text_color="#e2e8f0", font=ctk.CTkFont(size=12)).pack(side="left", fill="x", expand=True, padx=(10, 4))
             ctk.CTkLabel(row, text="●", text_color=COLORS["green"], font=ctk.CTkFont(size=11)).pack(side="right")
 
     def _extract_users_from_legacy_list(self, text):

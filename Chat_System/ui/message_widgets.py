@@ -14,15 +14,15 @@ import customtkinter as ctk
 from PIL import Image
 
 COLORS = {
-    "text": "#172033",
-    "muted": "#7a849b",
-    "border": "#e2e7f2",
+    "text": "#101828",
+    "muted": "#667085",
+    "border": "#dde5f0",
     "incoming": "#ffffff",
-    "outgoing": "#f7f4ff",
-    "bot": "#f8fbff",
-    "purple": "#635bff",
-    "purple_soft": "#ece9ff",
-    "pink": "#ec4899",
+    "outgoing": "#eef2ff",
+    "bot": "#f8fafc",
+    "purple": "#4f46e5",
+    "purple_soft": "#eef2ff",
+    "pink": "#db2777",
 }
 
 SENTIMENT_STYLES = {
@@ -96,9 +96,9 @@ class MessageCard(ctk.CTkFrame):
         bubble = ctk.CTkFrame(
             master,
             fg_color=COLORS["outgoing"] if outgoing else COLORS["incoming"],
-            border_color="#cfc8ff" if outgoing else COLORS["border"],
+            border_color="#c7d2fe" if outgoing else COLORS["border"],
             border_width=1,
-            corner_radius=12,
+            corner_radius=16,
         )
         bubble.grid_columnconfigure(0, weight=1)
 
@@ -122,9 +122,9 @@ class MessageCard(ctk.CTkFrame):
             bubble,
             text=text,
             justify="left",
-            wraplength=360,
+            wraplength=460,
             text_color=COLORS["text"],
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=14),
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(5, 7))
 
         chip_row = ctk.CTkFrame(bubble, fg_color="transparent")
@@ -146,7 +146,7 @@ class BotCard(ctk.CTkFrame):
             fg_color=COLORS["bot"],
             border_color="#d7e6ff",
             border_width=1,
-            corner_radius=12,
+            corner_radius=16,
         )
         bubble.pack(side="left")
 
@@ -173,9 +173,9 @@ class BotCard(ctk.CTkFrame):
             bubble,
             text=text,
             justify="left",
-            wraplength=430,
+            wraplength=540,
             text_color=COLORS["text"],
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=14),
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 11))
 
 
@@ -190,7 +190,7 @@ class ImageCard(ctk.CTkFrame):
         row.pack(anchor="w", pady=3)
         Avatar(row, payload.get("from") or "AI Image", size=38, color=COLORS["pink"]).pack(side="left", padx=(2, 9), anchor="n")
 
-        bubble = ctk.CTkFrame(row, fg_color="#ffffff", corner_radius=12, border_width=1, border_color=COLORS["border"])
+        bubble = ctk.CTkFrame(row, fg_color="#ffffff", corner_radius=16, border_width=1, border_color=COLORS["border"])
         bubble.pack(side="left")
         bubble.grid_columnconfigure(0, weight=1)
 
@@ -205,7 +205,7 @@ class ImageCard(ctk.CTkFrame):
             bubble,
             text=prompt,
             justify="left",
-            wraplength=450,
+            wraplength=520,
             text_color=COLORS["text"],
             font=ctk.CTkFont(size=12),
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 8))
@@ -213,9 +213,9 @@ class ImageCard(ctk.CTkFrame):
         self.image_label = ctk.CTkLabel(
             bubble,
             text="Loading preview...",
-            width=450,
-            height=240,
-            corner_radius=10,
+            width=520,
+            height=280,
+            corner_radius=14,
             fg_color="#f3f5fb",
             text_color=COLORS["muted"],
         )
@@ -260,6 +260,6 @@ class ImageCard(ctk.CTkFrame):
         self.after(0, lambda: self._set_image(image))
 
     def _set_image(self, image):
-        image.thumbnail((450, 250))
+        image.thumbnail((520, 280))
         self._image_ref = ctk.CTkImage(light_image=image.copy(), dark_image=image.copy(), size=image.size)
         self.image_label.configure(image=self._image_ref, text="")
