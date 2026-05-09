@@ -37,6 +37,13 @@ from protocol import (
     ACTION_SEARCH,
     ACTION_SUMMARY_REQUEST,
     ACTION_SUMMARY_RESPONSE,
+    ACTION_TTT_ERROR,
+    ACTION_TTT_JOIN,
+    ACTION_TTT_LEAVE,
+    ACTION_TTT_MOVE,
+    ACTION_TTT_RESTART,
+    ACTION_TTT_STATE,
+    ACTION_TTT_WAITING,
     ACTION_TIME,
     BOT_NAME,
     require_fields,
@@ -46,6 +53,7 @@ from services.gemini_client import GeminiClient
 from services.leaderboard import Leaderboard
 from services.pollinations_client import PollinationsClient
 from services.sentiment import analyze_sentiment
+from services.tic_tac_toe import TicTacToeRoom
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -63,6 +71,10 @@ class Server:
         self.pollinations = PollinationsClient()
         self._gemini = None
         self.bot_personality = "concise helpful teammate"
+        self.ttt_rooms = {}
+        self.ttt_waiting_room_id = None
+        self.ttt_counter = 0
+        self.ttt_scores_awarded = set()
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -81,10 +93,36 @@ class Server:
         mysend(sock, json.dumps(payload))
 
     def broadcast(self, payload, include_sender=True, sender_sock=None):
+        failed = []
         for sock in list(self.logged_sock2name.keys()):
             if not include_sender and sock is sender_sock:
                 continue
-            self.send_json(sock, payload)
+            try:
+                self.send_json(sock, payload)
+            except OSError:
+                failed.append(sock)
+        for sock in failed:
+            self.drop_logged_client(sock)
+
+    def broadcast_to_ttt_room(self, room, payload):
+        for player in room.players:
+            sock = self.logged_name2sock.get(player)
+            if sock is not None:
+                try:
+                    self.send_json(sock, payload)
+                except OSError:
+                    self.drop_logged_client(sock)
+
+    def broadcast_system_message(self, message):
+        payload = {
+            "action": ACTION_BOT_RESPONSE,
+            "status": "ok",
+            "from": BOT_NAME,
+            "sender": BOT_NAME,
+            "message": message,
+            "timestamp": time.strftime("%H:%M", time.localtime()),
+        }
+        self.broadcast(payload)
 
     def online_payload(self):
         users = sorted(self.logged_name2sock.keys())
@@ -164,21 +202,169 @@ class Server:
             self.all_sockets.remove(sock)
         sock.close()
 
+    def drop_logged_client(self, sock):
+        name = self.logged_sock2name.pop(sock, None)
+        if name is not None:
+            self.save_index(name)
+            self.indices.pop(name, None)
+            self.logged_name2sock.pop(name, None)
+            self.group.leave(name)
+            self.handle_ttt_disconnect(name)
+        if sock in self.all_sockets:
+            self.all_sockets.remove(sock)
+        try:
+            sock.close()
+        except OSError:
+            pass
+
     def logout(self, sock):
         name = self.logged_sock2name.get(sock)
         if name is None:
             self.drop_new_client(sock)
             return
+        self.handle_ttt_disconnect(name)
         print(name + " logged out")
-        self.save_index(name)
-        self.indices.pop(name, None)
-        self.logged_name2sock.pop(name, None)
-        self.logged_sock2name.pop(sock, None)
-        if sock in self.all_sockets:
-            self.all_sockets.remove(sock)
-        self.group.leave(name)
-        sock.close()
+        self.drop_logged_client(sock)
         self.broadcast_online_list()
+
+    def next_ttt_room_id(self):
+        self.ttt_counter += 1
+        return f"ttt_{self.ttt_counter}"
+
+    def ttt_error(self, from_sock, message, room_id=None):
+        self.send_json(
+            from_sock,
+            {
+                "action": ACTION_TTT_ERROR,
+                "type": ACTION_TTT_ERROR,
+                "room_id": room_id,
+                "message": str(message),
+            },
+        )
+
+    def handle_ttt_join(self, from_sock, msg):
+        username = msg.get("username") or self.logged_sock2name[from_sock]
+        if username != self.logged_sock2name[from_sock]:
+            raise ValueError("Tic-Tac-Toe username does not match the logged-in client.")
+
+        for existing in self.ttt_rooms.values():
+            if username in existing.players and existing.status in {"waiting", "playing", "finished", "draw"}:
+                if existing.status == "waiting":
+                    self.send_json(
+                        from_sock,
+                        {
+                            "action": ACTION_TTT_WAITING,
+                            "type": ACTION_TTT_WAITING,
+                            "room_id": existing.room_id,
+                            "message": "Waiting for another player...",
+                        },
+                    )
+                else:
+                    self.send_json(from_sock, existing.to_state_message())
+                return
+
+        room = None
+        if self.ttt_waiting_room_id:
+            candidate = self.ttt_rooms.get(self.ttt_waiting_room_id)
+            if candidate and candidate.status == "waiting" and username not in candidate.players:
+                room = candidate
+
+        if room is None:
+            room_id = self.next_ttt_room_id()
+            room = TicTacToeRoom(room_id)
+            self.ttt_rooms[room_id] = room
+            self.ttt_waiting_room_id = room_id
+
+        symbol = room.add_player(username)
+        self.broadcast_system_message(f"{username} joined Tic-Tac-Toe room {room.room_id} as {symbol}.")
+
+        if room.status == "waiting":
+            self.send_json(
+                from_sock,
+                {
+                    "action": ACTION_TTT_WAITING,
+                    "type": ACTION_TTT_WAITING,
+                    "room_id": room.room_id,
+                    "message": "Waiting for another player...",
+                },
+            )
+        else:
+            self.ttt_waiting_room_id = None
+            self.broadcast_system_message("Tic-Tac-Toe game started.")
+            self.broadcast_to_ttt_room(room, room.to_state_message())
+
+    def handle_ttt_move(self, from_sock, msg):
+        require_fields(msg, ["room_id", "row", "col"])
+        username = msg.get("username") or self.logged_sock2name[from_sock]
+        room_id = msg["room_id"]
+        room = self.ttt_rooms.get(room_id)
+        if room is None:
+            raise ValueError("Tic-Tac-Toe room does not exist.")
+        room.make_move(username, int(msg["row"]), int(msg["col"]))
+        state = room.to_state_message()
+        self.broadcast_to_ttt_room(room, state)
+        self.handle_ttt_score(room)
+        if room.status == "finished":
+            self.broadcast_system_message(f"{room.winner} won the Tic-Tac-Toe game.")
+        elif room.status == "draw":
+            self.broadcast_system_message("The Tic-Tac-Toe game ended in a draw.")
+
+    def handle_ttt_restart(self, from_sock, msg):
+        require_fields(msg, ["room_id"])
+        username = msg.get("username") or self.logged_sock2name[from_sock]
+        room = self.ttt_rooms.get(msg["room_id"])
+        if room is None:
+            raise ValueError("Tic-Tac-Toe room does not exist.")
+        restarted = room.vote_restart(username)
+        if restarted:
+            self.ttt_scores_awarded.discard(room.room_id)
+            self.broadcast_system_message(f"Tic-Tac-Toe room {room.room_id} restarted.")
+            self.broadcast_to_ttt_room(room, room.to_state_message())
+        else:
+            payload = room.to_state_message()
+            payload["message"] = f"{username} requested a restart. Waiting for the other player."
+            self.broadcast_to_ttt_room(room, payload)
+
+    def handle_ttt_leave(self, from_sock, msg):
+        username = msg.get("username") or self.logged_sock2name[from_sock]
+        room_id = msg.get("room_id")
+        if not room_id:
+            return
+        room = self.ttt_rooms.get(room_id)
+        if room is None:
+            return
+        peers = [player for player in room.players if player != username]
+        room.remove_player(username)
+        if self.ttt_waiting_room_id == room_id:
+            self.ttt_waiting_room_id = None
+        for peer in peers:
+            sock = self.logged_name2sock.get(peer)
+            if sock is not None:
+                try:
+                    self.send_json(sock, room.to_state_message())
+                except OSError:
+                    self.drop_logged_client(sock)
+        self.broadcast_system_message(f"{username} left Tic-Tac-Toe room {room_id}.")
+
+    def handle_ttt_disconnect(self, username):
+        for room in list(self.ttt_rooms.values()):
+            if username in room.players:
+                fake_msg = {"room_id": room.room_id, "username": username}
+                sock = self.logged_name2sock.get(username)
+                if sock is not None:
+                    self.handle_ttt_leave(sock, fake_msg)
+
+    def handle_ttt_score(self, room):
+        if room.status not in {"finished", "draw"} or room.room_id in self.ttt_scores_awarded:
+            return
+        self.ttt_scores_awarded.add(room.room_id)
+        if room.status == "draw":
+            for player in room.players:
+                self.leaderboard.submit(player, 30)
+        else:
+            for player in room.players:
+                self.leaderboard.submit(player, 100 if player == room.winner else 10)
+        self.broadcast({"action": ACTION_LEADERBOARD, "entries": self.leaderboard.top()})
 
     def handle_exchange(self, from_sock, msg):
         require_fields(msg, ["message"])
@@ -364,8 +550,9 @@ class Server:
 
         try:
             msg = json.loads(raw)
-            require_fields(msg, ["action"])
-            action = msg["action"]
+            action = msg.get("action") or msg.get("type")
+            if not action:
+                raise ValueError("Malformed payload; missing action")
             if action == ACTION_CONNECT:
                 self.handle_connect(from_sock, msg)
             elif action == ACTION_EXCHANGE:
@@ -400,10 +587,27 @@ class Server:
                 self.broadcast({"action": ACTION_LEADERBOARD, "entries": ranking})
             elif action == ACTION_LEADERBOARD:
                 self.send_json(from_sock, {"action": ACTION_LEADERBOARD, "entries": self.leaderboard.top()})
+            elif action == ACTION_TTT_JOIN:
+                self.handle_ttt_join(from_sock, msg)
+            elif action == ACTION_TTT_MOVE:
+                self.handle_ttt_move(from_sock, msg)
+            elif action == ACTION_TTT_RESTART:
+                self.handle_ttt_restart(from_sock, msg)
+            elif action == ACTION_TTT_LEAVE:
+                self.handle_ttt_leave(from_sock, msg)
             else:
                 raise ValueError(f"Unknown action: {action}")
         except Exception as exc:
-            self.send_json(from_sock, self.error_payload(exc))
+            try:
+                action = msg.get("action") or msg.get("type")
+                room_id = msg.get("room_id")
+            except Exception:
+                action = None
+                room_id = None
+            if action in {ACTION_TTT_JOIN, ACTION_TTT_MOVE, ACTION_TTT_RESTART, ACTION_TTT_LEAVE}:
+                self.ttt_error(from_sock, exc, room_id=room_id)
+            else:
+                self.send_json(from_sock, self.error_payload(exc))
 
     def handle_connect(self, from_sock, msg):
         require_fields(msg, ["target"])

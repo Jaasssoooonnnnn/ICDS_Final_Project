@@ -133,6 +133,58 @@ class ServerSmokeTests(unittest.TestCase):
             alice.close()
             bob.close()
 
+    def test_multiplayer_tic_tac_toe_state_sync_and_validation(self):
+        suffix = str(int(time.time() * 1000))
+        alice_name = "AliceTTT" + suffix
+        bob_name = "BobTTT" + suffix
+        alice = self.make_client(alice_name)
+        bob = self.make_client(bob_name)
+        try:
+            send_json(alice, {"action": "ttt_join", "username": alice_name})
+            waiting = recv_until(alice, "ttt_waiting")
+            room_id = waiting["room_id"]
+
+            send_json(bob, {"action": "ttt_join", "username": bob_name})
+            alice_state = recv_until(alice, "ttt_state")
+            bob_state = recv_until(bob, "ttt_state")
+            self.assertEqual(alice_state["room_id"], room_id)
+            self.assertEqual(alice_state["symbols"][alice_name], "X")
+            self.assertEqual(bob_state["symbols"][bob_name], "O")
+            self.assertEqual(alice_state["turn"], alice_name)
+
+            send_json(bob, {"action": "ttt_move", "room_id": room_id, "username": bob_name, "row": 0, "col": 0})
+            error = recv_until(bob, "ttt_error")
+            self.assertIn("not your turn", error["message"])
+
+            moves = [
+                (alice, alice_name, 0, 0),
+                (bob, bob_name, 1, 0),
+                (alice, alice_name, 0, 1),
+                (bob, bob_name, 1, 1),
+                (alice, alice_name, 0, 2),
+            ]
+            final_state = None
+            for sock, username, row, col in moves:
+                send_json(sock, {"action": "ttt_move", "room_id": room_id, "username": username, "row": row, "col": col})
+                final_state = recv_until_predicate(
+                    alice,
+                    lambda msg: msg.get("action") == "ttt_state" and msg.get("room_id") == room_id,
+                    "Alice Tic-Tac-Toe state",
+                )
+                recv_until_predicate(
+                    bob,
+                    lambda msg: msg.get("action") == "ttt_state" and msg.get("room_id") == room_id,
+                    "Bob Tic-Tac-Toe state",
+                )
+
+            self.assertEqual(final_state["status"], "finished")
+            self.assertEqual(final_state["winner"], alice_name)
+            leaderboard = recv_until(alice, "leaderboard")
+            self.assertIsInstance(leaderboard["entries"], list)
+        finally:
+            alice.close()
+            bob.close()
+
 
 if __name__ == "__main__":
     unittest.main()

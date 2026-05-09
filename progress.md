@@ -28,6 +28,7 @@ feature, and commit after each key point once git is initialized.
 - [x] GUI: CustomTkinter desktop shell matching the reference screenshots.
 - [x] Chatbot: Gemini-powered bot for direct client interaction.
 - [x] Game: Tkinter Whack-a-Mole with single-player score submission.
+- [x] Multiplayer Game: server-authoritative graphical Tic-Tac-Toe.
 - [x] AI Picture Generation: Pollinations.ai `/aipic:` flow.
 - [x] Summary / Keywords: Gemini `/summary` and `/keywords` over real history.
 - [x] Sentiment Analysis: local TextBlob labels and insight counts.
@@ -395,3 +396,34 @@ feature, and commit after each key point once git is initialized.
   - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed; screenshots were
     regenerated and checked for nonblack content.
+
+## 2026-05-09 Multiplayer Tic-Tac-Toe Bonus
+
+- Added a graphical two-client Tic-Tac-Toe game for the Interactive Multiplayer
+  Gaming bonus.
+- Server-side changes:
+  - added `ttt_join`, `ttt_move`, `ttt_restart`, `ttt_leave`, `ttt_waiting`,
+    `ttt_state`, and `ttt_error` protocol actions,
+  - added `services/tic_tac_toe.py` for authoritative room state, turn
+    validation, win/draw detection, restart votes, and state serialization,
+  - integrated matchmaking, room broadcasts, disconnect cleanup, system chat
+    messages, and leaderboard points in `chat_server.py`.
+- GUI changes:
+  - added `ui/tic_tac_toe_window.py` with a 3x3 graphical board, room/symbol
+    labels, status text, Join Game, Restart, and Close controls,
+  - routed `ttt_*` messages internally so raw game JSON does not appear in the
+    normal chat,
+  - added Quick Actions entries for Tic-Tac-Toe and Whack-a-Mole while keeping
+    existing chat, AI, sentiment, image, summary, keywords, and solo game flows.
+- Stability fix:
+  - hardened server broadcasts so closed sockets are cleaned up instead of
+    crashing the server during multi-client demos.
+- Tests run:
+  - `python -m py_compile Chat_System\protocol.py Chat_System\chat_server.py Chat_System\GUI.py Chat_System\services\tic_tac_toe.py Chat_System\ui\tic_tac_toe_window.py Chat_System\tests\test_server_smoke.py`: passed.
+  - `python -m unittest Chat_System.tests.test_services -v`: passed, 7 tests.
+  - `python -m unittest Chat_System.tests.test_server_smoke -v`: passed, 2 tests,
+    including two-client Tic-Tac-Toe matchmaking, invalid turn rejection, board
+    sync, and X win detection.
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 9 tests.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed and regenerated main
+    chat, Whack-a-Mole, result, and Tic-Tac-Toe screenshots.

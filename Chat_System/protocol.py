@@ -21,6 +21,14 @@ ACTION_SCORE_SUBMIT = "score_submit"
 ACTION_LEADERBOARD = "leaderboard"
 ACTION_ERROR = "error"
 
+ACTION_TTT_JOIN = "ttt_join"
+ACTION_TTT_WAITING = "ttt_waiting"
+ACTION_TTT_MOVE = "ttt_move"
+ACTION_TTT_RESTART = "ttt_restart"
+ACTION_TTT_LEAVE = "ttt_leave"
+ACTION_TTT_STATE = "ttt_state"
+ACTION_TTT_ERROR = "ttt_error"
+
 BOT_NAME = "ICDS Bot"
 
 

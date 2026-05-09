@@ -16,6 +16,7 @@ Mention the core features:
 - AI image generation through Pollinations.ai.
 - Summary and keyword extraction over real chat history.
 - Local sentiment analysis with TextBlob.
+- Multiplayer Tic-Tac-Toe with server-side rule validation.
 - Whack-a-Mole game with server leaderboard.
 
 ## 2. pi-mono Usage Demo
@@ -49,7 +50,10 @@ Recommended order:
 8. Send `/summary` and `/keywords`.
 9. Send `/aipic: a futuristic classroom chat app dashboard` and show the image
    card.
-10. Start Whack-a-Mole, play briefly, submit the score, and show the
+10. Open Games or Quick Actions `Tic-Tac-Toe` in both clients, click Join Game,
+    make two or three moves, and point out that turns are enforced by the
+    server.
+11. Start Whack-a-Mole, play briefly, submit the score, and show the
     leaderboard.
 
 ## 4. Technical Discussion
@@ -65,8 +69,10 @@ Explain the architecture:
 - `services/chat_history.py` stores recent context for summary, keywords, and
   bot replies.
 - `services/leaderboard.py` stores and ranks game scores.
+- `services/tic_tac_toe.py` stores authoritative multiplayer room state.
 - `GUI.py` and `ui/message_widgets.py` render the modern chat interface.
 - `ui/game_window.py` implements the game in a `Toplevel` and `Canvas`.
+- `ui/tic_tac_toe_window.py` implements the graphical multiplayer board.
 
 ## 5. Reflection
 
@@ -79,7 +85,6 @@ Discuss challenges:
 
 Possible improvements:
 
-- Add true two-player game synchronization.
 - Add file transfer.
 - Add richer profile avatars.
 - Package the app into a one-click desktop executable.

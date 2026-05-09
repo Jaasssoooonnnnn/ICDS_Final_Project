@@ -23,9 +23,11 @@ except ImportError:  # pragma: no cover - dependency is documented for runtime.
 try:
     from ui.game_window import WhackAMoleWindow
     from ui.message_widgets import BotCard, ImageCard, MessageCard
+    from ui.tic_tac_toe_window import TicTacToeWindow
 except ImportError:
     from Chat_System.ui.game_window import WhackAMoleWindow
     from Chat_System.ui.message_widgets import BotCard, ImageCard, MessageCard
+    from Chat_System.ui.tic_tac_toe_window import TicTacToeWindow
 
 
 ctk.set_appearance_mode("light")
@@ -65,6 +67,8 @@ NAV_ITEMS = [
 ]
 
 ACTION_META = [
+    ("🎮", "Tic-Tac-Toe", "Multiplayer game", "TicTacToe", "#5b4dff"),
+    ("🔨", "Whack-a-Mole", "Solo leaderboard", "WhackAMole", "#f5a524"),
     ("📄", "/summary", "Generate chat summary", "Summary", "#3867ff"),
     ("🏷️", "/keywords", "Extract keywords", "Keywords", "#8b5cf6"),
     ("🖼️", "/aipic", "Generate AI image", "AI Pic", "#20b26b"),
@@ -96,6 +100,8 @@ class GUI:
         self.personality_var = tk.StringVar(value="Friendly")
         self.leaderboard_scope = tk.StringVar(value="This Week")
         self.leaderboard_tab_buttons = {}
+        self.ttt_window = None
+        self.pending_ttt_state = None
 
         self.chat_scroll = None
         self.entryMsg = None
@@ -506,6 +512,10 @@ class GUI:
 
     def _run_quick_action(self, action):
         if action == "Game":
+            self.open_tic_tac_toe()
+        elif action == "TicTacToe":
+            self.open_tic_tac_toe()
+        elif action == "WhackAMole":
             self.open_game()
         elif action == "Summary":
             self.request_summary()
@@ -724,6 +734,8 @@ class GUI:
         elif action == "search":
             results = payload.get("results") or "No matching chat history found."
             self.add_bot_card(results, title="Search")
+        elif str(action).startswith("ttt_") or str(payload.get("type", "")).startswith("ttt_"):
+            self.handle_ttt_payload(payload)
         elif action == "connect":
             self.add_bot_card(f"{payload.get('from', 'A peer')} joined the chat.", title="Room")
         elif action == "disconnect":
@@ -798,6 +810,33 @@ class GUI:
 
     def open_game(self):
         WhackAMoleWindow(self.Window, player_name=self.name, submit_callback=self.submit_score)
+
+    def open_tic_tac_toe(self):
+        if self.ttt_window and not self.ttt_window.closed:
+            self.ttt_window.window.lift()
+            self.ttt_window.window.focus_force()
+        else:
+            self.ttt_window = TicTacToeWindow(
+                self.Window,
+                username=self.name,
+                send_payload=self._safe_send,
+                on_close=lambda: setattr(self, "ttt_window", None),
+            )
+            if self.pending_ttt_state:
+                self.ttt_window.handle_message(self.pending_ttt_state)
+                self.pending_ttt_state = None
+
+    def handle_ttt_payload(self, payload):
+        action = payload.get("action") or payload.get("type")
+        if action == "ttt_error":
+            if self.ttt_window and not self.ttt_window.closed:
+                self.ttt_window.handle_message(payload)
+            else:
+                self.add_bot_card(payload.get("message") or "Tic-Tac-Toe error.", title="Tic-Tac-Toe")
+            return
+        self.pending_ttt_state = payload
+        if self.ttt_window and not self.ttt_window.closed:
+            self.ttt_window.handle_message(payload)
 
     def submit_score(self, score):
         self.add_bot_card(f"Submitting Whack-a-Mole score: {score}", title="Game")
@@ -972,6 +1011,8 @@ class GUI:
         self.closed = True
         if self.sm.get_state() != S_OFFLINE:
             self.sm.set_state(S_OFFLINE)
+        if self.ttt_window and not self.ttt_window.closed:
+            self.ttt_window.close()
         if self.on_close is not None:
             self.on_close()
         try:

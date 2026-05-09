@@ -3,8 +3,8 @@
 This project extends the original socket-based chat system into a desktop chat
 application with a polished CustomTkinter GUI, Gemini chatbot features,
 Pollinations.ai image generation, TextBlob sentiment analysis, Gemini summary
-and keyword extraction, and a single-player Whack-a-Mole game with a shared
-server leaderboard.
+and keyword extraction, a single-player Whack-a-Mole game, and a graphical
+multiplayer Tic-Tac-Toe game with server-authoritative state.
 
 ## Features
 
@@ -20,6 +20,8 @@ server leaderboard.
 - Local TextBlob sentiment analysis: `Positive`, `Neutral`, `Negative`.
 - Tkinter `Canvas` Whack-a-Mole game with score submission and ranked
   leaderboard.
+- Multiplayer Tic-Tac-Toe between two GUI clients, synchronized and validated
+  by the server.
 
 ## Setup
 
@@ -69,7 +71,10 @@ send messages from both windows.
 - Summary: `/summary`.
 - Keywords: `/keywords`.
 - AI image: `/aipic: a futuristic classroom chat app dashboard`.
-- Game: click `Start Game`, play Whack-a-Mole, then submit the score.
+- Multiplayer game: click `Games` or Quick Actions `Tic-Tac-Toe` in two
+  clients, click `Join Game`, then take turns on the graphical board.
+- Solo game: click Quick Actions `Whack-a-Mole`, play briefly, then submit the
+  score.
 
 ## Verification
 
@@ -104,6 +109,7 @@ python Chat_System\tests\external_smoke.py
 | Chatbot personality | `/personality:` command |
 | Group chatbot interaction bonus | `@bot` broadcast response in group chat |
 | Single-player game with ranked scores | `ui/game_window.py` and `services/leaderboard.py` |
+| Interactive multiplayer gaming bonus | `services/tic_tac_toe.py`, `ui/tic_tac_toe_window.py`, and `ttt_*` server actions |
 | AI picture bonus | Pollinations `/aipic:` flow |
 | Summary / keywords bonus | Gemini `/summary` and `/keywords` |
 | Sentiment bonus | Local TextBlob analysis and visible tags |

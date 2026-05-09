@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from GUI import GUI  # noqa: E402
 from chat_utils import S_LOGGEDIN  # noqa: E402
+from ui.tic_tac_toe_window import TicTacToeWindow  # noqa: E402
 from ui.game_window import WhackAMoleWindow  # noqa: E402
 
 
@@ -98,10 +99,29 @@ def main():
     game._finish()
     capture_window(game.window, out_dir / "game_result_refactor.png")
     game.close()
+
+    ttt = TicTacToeWindow(gui.Window, "Arjun Mehta", lambda payload: sent.append(payload))
+    ttt.window.geometry("430x540+140+140")
+    ttt.handle_message(
+        {
+            "action": "ttt_state",
+            "room_id": "ttt_demo",
+            "players": ["Arjun Mehta", "Priya Sharma"],
+            "symbols": {"Arjun Mehta": "X", "Priya Sharma": "O"},
+            "board": [["X", "O", ""], ["", "X", ""], ["O", "", ""]],
+            "turn": "Arjun Mehta",
+            "status": "playing",
+            "winner": None,
+            "message": "Arjun Mehta's turn.",
+        }
+    )
+    capture_window(ttt.window, out_dir / "tic_tac_toe_refactor.png")
+    ttt.close()
     gui.close()
     print(out_dir / "main_chat_refactor.png")
     print(out_dir / "game_live_refactor.png")
     print(out_dir / "game_result_refactor.png")
+    print(out_dir / "tic_tac_toe_refactor.png")
 
 
 if __name__ == "__main__":
