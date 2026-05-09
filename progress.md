@@ -378,3 +378,20 @@ feature, and commit after each key point once git is initialized.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed; reviewed
     `tmp/ui_refactor/game_result_refactor.png` and confirmed no result artwork
     remains behind the card.
+
+## 2026-05-09 Clickable GUI Audit
+
+- Audited visible GUI controls against the guideline and bonus scope.
+- Added real actions for the remaining visible entry points:
+  - left navigation Bot and Settings now open useful bot/settings flows,
+  - composer Emoji inserts an emoji, Files explains it is outside scope, and
+    Summary/Keywords call the real AI actions,
+  - Leaderboard tabs switch selected state and provide feedback,
+  - Quick Actions now bind clicks recursively so clicking row text/icons works.
+- Removed profile/footer decorative glyphs that looked clickable but had no
+  guideline-backed behavior.
+- Tests run:
+  - `python -m py_compile Chat_System\GUI.py`: passed.
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed; screenshots were
+    regenerated and checked for nonblack content.

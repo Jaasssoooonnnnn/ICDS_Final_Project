@@ -94,6 +94,8 @@ class GUI:
         self.room_pinned = False
         self.notifications_enabled = True
         self.personality_var = tk.StringVar(value="Friendly")
+        self.leaderboard_scope = tk.StringVar(value="This Week")
+        self.leaderboard_tab_buttons = {}
 
         self.chat_scroll = None
         self.entryMsg = None
@@ -244,7 +246,6 @@ class GUI:
         info_row = ctk.CTkFrame(user, fg_color="transparent")
         info_row.pack(fill="x", padx=18, pady=(6, 0))
         ctk.CTkLabel(info_row, text=name, anchor="w", text_color=COLORS["text"], font=ctk.CTkFont(size=15, weight="bold")).pack(side="left", fill="x", expand=True)
-        ctk.CTkLabel(info_row, text="›", text_color=COLORS["text"], font=ctk.CTkFont(size=22, weight="bold")).pack(side="right")
         ctk.CTkLabel(user, text="Student ID: 2023123456", anchor="w", text_color=COLORS["muted"], font=ctk.CTkFont(size=11)).pack(fill="x", padx=18, pady=(1, 10))
 
         nav = ctk.CTkFrame(sidebar, fg_color="transparent")
@@ -270,7 +271,6 @@ class GUI:
         footer.grid(row=5, column=0, sticky="ew", padx=30, pady=(0, 28))
         ctk.CTkLabel(footer, text="●", text_color=COLORS["green"], font=ctk.CTkFont(size=14)).pack(side="left", padx=(18, 8), pady=12)
         ctk.CTkLabel(footer, text="Connected", text_color=COLORS["text"], font=ctk.CTkFont(size=12)).pack(side="left")
-        ctk.CTkLabel(footer, text="▥", text_color=COLORS["green"], font=ctk.CTkFont(size=13)).pack(side="right", padx=(0, 18))
 
     def _build_chat_column(self):
         center = ctk.CTkFrame(self.Window, fg_color=COLORS["center"], corner_radius=0)
@@ -354,8 +354,24 @@ class GUI:
         )
         self.entryMsg.grid(row=0, column=0, columnspan=7, sticky="ew", padx=16, pady=(8, 2))
         self.entryMsg.bind("<Return>", lambda event: self.sendButton(self.entryMsg.get()))
-        for col, label in enumerate(("😊  Emoji", "📎  Files", "📄  Summary", "🏷️  Keywords")):
-            ctk.CTkButton(inner, text=label, height=30, corner_radius=8, fg_color="transparent", hover_color="#f0f3ff", text_color=COLORS["muted"], font=ctk.CTkFont(size=12)).grid(row=1, column=col, padx=(10 if col == 0 else 4, 4), pady=(0, 10))
+        composer_actions = (
+            ("😊  Emoji", self.insert_emoji),
+            ("📎  Files", self.show_file_notice),
+            ("📄  Summary", self.request_summary),
+            ("🏷️  Keywords", self.request_keywords),
+        )
+        for col, (label, command) in enumerate(composer_actions):
+            ctk.CTkButton(
+                inner,
+                text=label,
+                height=30,
+                corner_radius=8,
+                fg_color="transparent",
+                hover_color="#f0f3ff",
+                text_color=COLORS["muted"],
+                font=ctk.CTkFont(size=12),
+                command=command,
+            ).grid(row=1, column=col, padx=(10 if col == 0 else 4, 4), pady=(0, 10))
         ctk.CTkLabel(inner, text="0/2000", text_color=COLORS["muted"], font=ctk.CTkFont(size=12)).grid(row=1, column=5, padx=8, pady=(0, 10), sticky="e")
         ctk.CTkButton(
             inner,
@@ -405,15 +421,20 @@ class GUI:
         tabs = ctk.CTkFrame(leaderboard, fg_color="#edf1f8", corner_radius=12)
         tabs.pack(fill="x", padx=16, pady=(0, 12))
         for idx, tab in enumerate(("This Week", "This Month", "All Time")):
-            ctk.CTkLabel(
+            tab_button = ctk.CTkButton(
                 tabs,
                 text=tab,
                 height=32,
                 corner_radius=10,
+                border_width=0,
                 fg_color=COLORS["purple"] if idx == 0 else "transparent",
+                hover_color="#dfe6ff",
                 text_color="#ffffff" if idx == 0 else COLORS["muted"],
                 font=ctk.CTkFont(size=11, weight="bold" if idx == 0 else "normal"),
-            ).pack(side="left", expand=True, fill="x", padx=2, pady=2)
+                command=lambda scope=tab: self.set_leaderboard_scope(scope),
+            )
+            tab_button.pack(side="left", expand=True, fill="x", padx=2, pady=2)
+            self.leaderboard_tab_buttons[tab] = tab_button
         self.leaderboard_frame = ctk.CTkFrame(leaderboard, fg_color="transparent")
         self.leaderboard_frame.pack(fill="x", padx=16, pady=(0, 16))
         self._render_leaderboard()
@@ -471,10 +492,13 @@ class GUI:
         text.pack(side="left", fill="both", expand=True, pady=8, padx=(0, 8))
         ctk.CTkLabel(text, text=title, width=112, anchor="w", text_color=COLORS["purple"], font=ctk.CTkFont(size=13, weight="bold")).pack(side="left")
         ctk.CTkLabel(text, text=subtitle, anchor="e", text_color=COLORS["muted"], font=ctk.CTkFont(size=11)).pack(side="right")
-        row.bind("<Button-1>", lambda _event: self._run_quick_action(action))
-        for child in row.winfo_children():
-            child.bind("<Button-1>", lambda _event: self._run_quick_action(action))
+        self._bind_click_recursive(row, lambda _event: self._run_quick_action(action))
         return row
+
+    def _bind_click_recursive(self, widget, callback):
+        widget.bind("<Button-1>", callback)
+        for child in widget.winfo_children():
+            self._bind_click_recursive(child, callback)
 
     def _info_line(self, master, label, value):
         ctk.CTkLabel(master, text=label, anchor="w", text_color=COLORS["muted"], font=ctk.CTkFont(size=10)).pack(fill="x", padx=12, pady=(0, 1))
@@ -489,6 +513,48 @@ class GUI:
             self.request_keywords()
         elif action == "AI Pic":
             self.prompt_image()
+        elif action == "Bot":
+            self.prompt_bot()
+        elif action == "Settings":
+            self.show_settings_help()
+        else:
+            self.show_chat_home()
+
+    def show_chat_home(self):
+        self.add_bot_card("You are already in the main group chat.", title="Chat")
+
+    def prompt_bot(self):
+        dialog = ctk.CTkInputDialog(text="Ask ICDS Bot", title="Bot")
+        question = (dialog.get_input() or "").strip()
+        if question:
+            self._send_bot_request(question, direct=True)
+
+    def show_settings_help(self):
+        self.add_bot_card(
+            "Use the ChatBot Settings dropdown on the right to switch between Friendly, Humorous, and Serious bot personalities.",
+            title="Settings",
+        )
+
+    def insert_emoji(self):
+        self.entryMsg.insert("end", "😊")
+        self.entryMsg.focus()
+
+    def show_file_notice(self):
+        self.add_bot_card(
+            "File upload is not part of the selected guideline/bonus scope. Use /aipic: for generated image sharing.",
+            title="Files",
+        )
+
+    def set_leaderboard_scope(self, scope):
+        self.leaderboard_scope.set(scope)
+        for label, button in self.leaderboard_tab_buttons.items():
+            active = label == scope
+            button.configure(
+                fg_color=COLORS["purple"] if active else "transparent",
+                text_color="#ffffff" if active else COLORS["muted"],
+                font=ctk.CTkFont(size=11, weight="bold" if active else "normal"),
+            )
+        self.add_bot_card(f"Leaderboard view changed to {scope}.", title="Leaderboard")
 
     def open_search(self):
         dialog = ctk.CTkInputDialog(text="Search your chat history", title="Search")
@@ -534,12 +600,16 @@ class GUI:
         return lambda: self._run_quick_action(
             "Game"
             if key == "game"
+            else "Bot"
+            if key == "bot"
             else "Summary"
             if key == "summary"
             else "Keywords"
             if key == "keywords"
             else "AI Pic"
             if key == "image"
+            else "Settings"
+            if key == "settings"
             else "Chats"
         )
 
