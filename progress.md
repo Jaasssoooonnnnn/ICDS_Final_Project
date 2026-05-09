@@ -295,3 +295,15 @@ feature, and commit after each key point once git is initialized.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed; reviewed
     `tmp/ui_refactor/game_live_refactor.png` with the smoke test pinned to a
     bottom-row hole.
+
+## 2026-05-09 Bottom Hole Horizontal Tuning
+
+- User reported the lower left and lower right moles were horizontally biased
+  toward the center.
+- Tuned bottom row x anchors independently: left bottom moved left and right
+  bottom moved right while the center bottom hole remained unchanged.
+- Pinned GUI smoke screenshots to right bottom and left bottom holes during
+  review to verify both sides align with their hole centers.
+- Tests run:
+  - `python -m py_compile Chat_System\tests\gui_visual_smoke.py Chat_System\ui\game_window.py`: passed.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed.
