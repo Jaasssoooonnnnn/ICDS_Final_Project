@@ -8,7 +8,7 @@ from services.config import env_value, load_project_env
 class GeminiClient:
     def __init__(self, api_key: str | None = None, model: str | None = None):
         load_project_env()
-        self.api_key = api_key if api_key is not None else env_value("GEMINI_API_KEY", required=True)
+        self.api_key = (api_key if api_key is not None else env_value("GEMINI_API_KEY", required=True)).strip()
         if not self.api_key:
             raise RuntimeError("Missing required environment variable: GEMINI_API_KEY")
         self.model = model or env_value("GEMINI_MODEL", "gemini-3.1-flash-lite-preview")

@@ -9,8 +9,11 @@ from protocol import ACTION_EXCHANGE, require_fields
 from services.chat_history import ChatHistory
 from services.gemini_client import GeminiClient
 from services.leaderboard import Leaderboard
+from services.llm_client import LLMClient
+from services.openai_client import OpenAIClient
 from services.pollinations_client import PollinationsClient
 from services.sentiment import NEGATIVE, NEUTRAL, POSITIVE, analyze_sentiment
+from services.tic_tac_toe import TicTacToeRoom
 
 
 class ServiceTests(unittest.TestCase):
@@ -57,11 +60,99 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(client.bot_reply("help", "Alice: hi", "warm project mentor"), "ok")
         self.assertIn("warm project mentor", prompts[0])
 
+    def test_openai_response_text_parsing(self):
+        client = OpenAIClient.__new__(OpenAIClient)
+        data = {"output": [{"type": "message", "content": [{"type": "output_text", "text": "hello"}]}]}
+        text = []
+
+        def fake_urlopen(_request, timeout=45):
+            class FakeResponse:
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *_args):
+                    return False
+
+                def read(self):
+                    return __import__("json").dumps(data).encode("utf-8")
+
+            return FakeResponse()
+
+        client.api_key = "test"
+        client.model = "test-model"
+        client.base_url = "https://api.openai.com/v1"
+        import urllib.request
+
+        original = urllib.request.urlopen
+        urllib.request.urlopen = fake_urlopen
+        try:
+            text.append(client._generate("hi"))
+        finally:
+            urllib.request.urlopen = original
+        self.assertEqual(text[0], "hello")
+
+    def test_llm_client_uses_openai_when_gemini_placeholder(self):
+        import os
+
+        old_gemini = os.environ.get("GEMINI_API_KEY")
+        old_openai = os.environ.get("OPENAI_API_KEY")
+        os.environ["GEMINI_API_KEY"] = "replace-with-your-gemini-api-key"
+        os.environ["OPENAI_API_KEY"] = "sk-test"
+        original_init = OpenAIClient.__init__
+        try:
+            OpenAIClient.__init__ = lambda self, api_key=None, model=None: setattr(self, "api_key", api_key or "sk-test")
+            client = LLMClient()
+            self.assertEqual(client.provider, "OpenAI")
+        finally:
+            OpenAIClient.__init__ = original_init
+            if old_gemini is None:
+                os.environ.pop("GEMINI_API_KEY", None)
+            else:
+                os.environ["GEMINI_API_KEY"] = old_gemini
+            if old_openai is None:
+                os.environ.pop("OPENAI_API_KEY", None)
+            else:
+                os.environ["OPENAI_API_KEY"] = old_openai
+
     def test_pollinations_url_encodes_prompt(self):
         client = PollinationsClient(base_url="https://image.pollinations.ai/prompt", output_dir=Path(tempfile.gettempdir()))
         url = client.image_url("purple robot helper")
         self.assertIn("purple%20robot%20helper", url)
         self.assertIn("nologo=true", url)
+
+    def test_tic_tac_toe_detects_o_win_and_draw(self):
+        room = TicTacToeRoom("room")
+        room.add_player("Alice")
+        room.add_player("Bob")
+        for player, row, col in [
+            ("Alice", 0, 0),
+            ("Bob", 1, 0),
+            ("Alice", 0, 1),
+            ("Bob", 1, 1),
+            ("Alice", 2, 2),
+            ("Bob", 1, 2),
+        ]:
+            room.make_move(player, row, col)
+        self.assertEqual(room.status, "finished")
+        self.assertEqual(room.winner, "Bob")
+
+        draw = TicTacToeRoom("draw")
+        draw.add_player("Alice")
+        draw.add_player("Bob")
+        for player, row, col in [
+            ("Alice", 0, 0),
+            ("Bob", 0, 1),
+            ("Alice", 0, 2),
+            ("Bob", 1, 1),
+            ("Alice", 1, 0),
+            ("Bob", 1, 2),
+            ("Alice", 2, 1),
+            ("Bob", 2, 0),
+            ("Alice", 2, 2),
+        ]:
+            draw.make_move(player, row, col)
+        self.assertEqual(draw.status, "draw")
+        self.assertIsNone(draw.winner)
 
 
 if __name__ == "__main__":

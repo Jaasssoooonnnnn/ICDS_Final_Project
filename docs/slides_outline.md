@@ -17,7 +17,7 @@
 - Socket server: `chat_server.py`.
 - GUI clients: `chat_gui_client.py` and `GUI.py`.
 - Protocol actions: `protocol.py`.
-- Service layer: Gemini, Pollinations, sentiment, history, leaderboard.
+- Service layer: Gemini/OpenAI, Pollinations, sentiment, history, leaderboard.
 
 ## Slide 4: GUI Design
 
@@ -28,7 +28,7 @@
 
 ## Slide 5: Chatbot
 
-- `ICDS Bot` uses Gemini.
+- `ICDS Bot` uses Gemini or OpenAI through the provider selector.
 - `/bot` for direct bot interaction.
 - `@bot` for group interaction.
 - Recent chat history is included as context.
@@ -58,7 +58,7 @@
 - Python compilation checks.
 - Unit tests for services and protocol validation.
 - Socket smoke test for two-client login, chat, sentiment, and leaderboard.
-- Optional external smoke test for Gemini and Pollinations.
+- Optional external smoke test for Gemini/OpenAI and Pollinations.
 
 ## Slide 10: pi-mono Usage
 
@@ -79,4 +79,5 @@
 - GUI requirement completed.
 - Chatbot selective topic completed.
 - Game selective topic completed.
-- Bonus features completed: group bot, AI image, summary/keywords, sentiment.
+- Bonus features completed: group bot, AI image, summary/keywords, sentiment,
+  and multiplayer Tic-Tac-Toe.

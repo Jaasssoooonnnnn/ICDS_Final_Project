@@ -1,7 +1,8 @@
 """Manual external API smoke test for the ICDS chat server.
 
-This script is intentionally not named test_*.py because it calls Gemini and
-Pollinations.ai. Run it before presentation when network/API quota is available:
+This script is intentionally not named test_*.py because it calls an external
+LLM provider and Pollinations.ai. Run it before presentation when network/API
+quota is available:
 
     python Chat_System/tests/external_smoke.py
 """
@@ -23,6 +24,14 @@ PORT = int(os.getenv("ICDS_EXTERNAL_SMOKE_PORT", "19114"))
 SIZE_SPEC = 5
 
 
+def redact_secrets(text):
+    for key in ("GEMINI_API_KEY", "OPENAI_API_KEY"):
+        value = os.getenv(key, "").strip()
+        if value:
+            text = text.replace(value, "<redacted>")
+    return text
+
+
 def load_env_file():
     env_path = PROJECT_ROOT / ".env"
     if not env_path.exists():
@@ -36,11 +45,14 @@ def load_env_file():
 
 def require_external_config():
     load_env_file()
-    key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not key or key == "replace-with-your-gemini-api-key":
+    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+    openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+    has_gemini = gemini_key and not gemini_key.startswith("replace-with-")
+    has_openai = openai_key and not openai_key.startswith("replace-with-")
+    if not (has_gemini or has_openai):
         raise SystemExit(
-            "external smoke skipped: set GEMINI_API_KEY in .env or environment "
-            "to test real Gemini bot, summary, and keyword calls"
+            "external smoke skipped: set GEMINI_API_KEY or OPENAI_API_KEY in .env "
+            "or environment to test real bot, summary, and keyword calls"
         )
 
 
@@ -78,10 +90,10 @@ def recv_until(sock, predicate, label, timeout=60.0):
             break
         last = msg
         if msg.get("action") == "error":
-            raise RuntimeError("server error: " + msg.get("error", "unknown"))
+            raise RuntimeError("server error: " + redact_secrets(msg.get("error", "unknown")))
         if predicate(msg):
             return msg
-    raise TimeoutError(f"did not receive {label}; last message was {last}")
+    raise TimeoutError(redact_secrets(f"did not receive {label}; last message was {last}"))
 
 
 def login(name):
@@ -127,24 +139,24 @@ def main():
             recv_until(bob, lambda msg: msg.get("action") == "exchange", "peer exchange")
 
             send_json(alice, {"action": "exchange", "message": "@bot Give one short action item."})
-            bot = recv_until(bob, lambda msg: msg.get("action") == "bot_response", "Gemini bot response")
+            bot = recv_until(bob, lambda msg: msg.get("action") == "bot_response", "AI bot response")
             if bot.get("status") != "ok" or not bot.get("message"):
-                raise RuntimeError("bot_response failed: " + json.dumps(bot))
+                raise RuntimeError("bot_response failed: " + redact_secrets(json.dumps(bot)))
 
             send_json(alice, {"action": "summary_request"})
-            summary = recv_until(alice, lambda msg: msg.get("action") == "summary_response", "Gemini summary")
+            summary = recv_until(alice, lambda msg: msg.get("action") == "summary_response", "AI summary")
             if summary.get("status") != "ok" or not summary.get("message"):
-                raise RuntimeError("summary_response failed: " + json.dumps(summary))
+                raise RuntimeError("summary_response failed: " + redact_secrets(json.dumps(summary)))
 
             send_json(alice, {"action": "keywords_request"})
-            keywords = recv_until(alice, lambda msg: msg.get("action") == "keywords_response", "Gemini keywords")
+            keywords = recv_until(alice, lambda msg: msg.get("action") == "keywords_response", "AI keywords")
             if keywords.get("status") != "ok" or not keywords.get("keywords"):
-                raise RuntimeError("keywords_response failed: " + json.dumps(keywords))
+                raise RuntimeError("keywords_response failed: " + redact_secrets(json.dumps(keywords)))
 
             send_json(alice, {"action": "image_request", "prompt": "small purple ICDS chat bubble smoke test"})
             image = recv_until(bob, lambda msg: msg.get("action") == "image_response", "Pollinations image")
             if image.get("status") != "ok" or not Path(image.get("path", "")).exists():
-                raise RuntimeError("image_response failed: " + json.dumps(image))
+                raise RuntimeError("image_response failed: " + redact_secrets(json.dumps(image)))
 
             print("external smoke ok")
             print("bot chars:", len(bot["message"]))

@@ -1,10 +1,10 @@
 # ICDS Final Project Chat System
 
 This project extends the original socket-based chat system into a desktop chat
-application with a polished CustomTkinter GUI, Gemini chatbot features,
-Pollinations.ai image generation, TextBlob sentiment analysis, Gemini summary
-and keyword extraction, a single-player Whack-a-Mole game, and a graphical
-multiplayer Tic-Tac-Toe game with server-authoritative state.
+application with a polished CustomTkinter GUI, Gemini/OpenAI chatbot features,
+Pollinations.ai image generation, TextBlob sentiment analysis, Gemini/OpenAI
+summary and keyword extraction, a single-player Whack-a-Mole game, and a
+graphical multiplayer Tic-Tac-Toe game with server-authoritative state.
 
 ## Features
 
@@ -12,9 +12,10 @@ multiplayer Tic-Tac-Toe game with server-authoritative state.
 - Modern desktop GUI with left navigation, central chat stream, and right
   insight/action panel.
 - Sent and received message cards with sender, timestamp, and sentiment tags.
-- Gemini-powered `ICDS Bot` through `/bot` and group `@bot` mentions.
+- Gemini/OpenAI-powered `ICDS Bot` through `/bot` and group `@bot` mentions.
 - Bot personality setting with `/personality: friendly project mentor`.
-- Gemini-powered `/summary` and `/keywords` over real recent chat history.
+- Gemini/OpenAI-powered `/summary` and `/keywords` over real recent chat
+  history.
 - Pollinations.ai image generation with `/aipic: prompt text`.
 - Image cards with preview rendering in the chat stream.
 - Local TextBlob sentiment analysis: `Positive`, `Neutral`, `Negative`.
@@ -31,17 +32,23 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Create `.env` from `.env.example` and fill in the Gemini key:
+Create `.env` from `.env.example` and fill in either a Gemini key or an OpenAI
+key:
 
 ```text
 GEMINI_API_KEY=your-gemini-api-key
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4.1-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
 GEMINI_MODEL=gemini-3.1-flash-lite-preview
 POLLINATIONS_IMAGE_BASE_URL=https://image.pollinations.ai/prompt
 CHAT_HOST=127.0.0.1
 CHAT_PORT=1112
 ```
 
-`.env` is intentionally ignored by Git.
+`.env` is intentionally ignored by Git. The server uses Gemini when
+`GEMINI_API_KEY` is configured; otherwise it falls back to OpenAI when
+`OPENAI_API_KEY` is configured.
 
 ## Run
 
@@ -104,14 +111,14 @@ python Chat_System\tests\external_smoke.py
 | GUI display window, input, send button, real-time updates | `Chat_System/GUI.py` |
 | Display both sent and received messages | `MessageCard` usage in `GUI.py` |
 | Login and online users | GUI login plus server `login` and `list` actions |
-| Chatbot | Gemini client and `@bot` or `/bot` commands |
-| Chatbot context | `services/chat_history.py` passed into Gemini prompts |
+| Chatbot | Gemini/OpenAI LLM client and `@bot` or `/bot` commands |
+| Chatbot context | `services/chat_history.py` passed into LLM prompts |
 | Chatbot personality | `/personality:` command |
 | Group chatbot interaction bonus | `@bot` broadcast response in group chat |
 | Single-player game with ranked scores | `ui/game_window.py` and `services/leaderboard.py` |
 | Interactive multiplayer gaming bonus | `services/tic_tac_toe.py`, `ui/tic_tac_toe_window.py`, and `ttt_*` server actions |
 | AI picture bonus | Pollinations `/aipic:` flow |
-| Summary / keywords bonus | Gemini `/summary` and `/keywords` |
+| Summary / keywords bonus | Gemini/OpenAI `/summary` and `/keywords` |
 | Sentiment bonus | Local TextBlob analysis and visible tags |
 | pi-mono usage demonstration | See `docs/presentation_script.md` |
 

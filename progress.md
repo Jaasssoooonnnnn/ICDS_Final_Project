@@ -6,9 +6,9 @@ Build from the base `Chat_System` framework into a polished ICDS final project
 desktop chat app matching `/Users/huxingyun/Desktop/课/ICDS/Final Project/演示图`.
 Required points: GUI, Chatbot, single-player Whack-a-Mole leaderboard.
 Bonus points: AI Picture Generation, Summary / Keywords, Sentiment Analysis,
-Chatbot Group Interaction. Use Pollinations.ai for images, Google Gemini API
-with `gemini-3.1-flash-lite-preview` for chatbot/summary/keywords, and local
-TextBlob for sentiment. Use `/opt/anaconda3/envs/chat_system` as the runtime.
+Chatbot Group Interaction. Use Pollinations.ai for images, Gemini or OpenAI
+for chatbot/summary/keywords, and local TextBlob for sentiment. Use
+`/opt/anaconda3/envs/chat_system` as the runtime.
 Agents should use subagents for independent work, update this file, test each
 feature, and commit after each key point once git is initialized.
 
@@ -26,11 +26,11 @@ feature, and commit after each key point once git is initialized.
 ## Feature Milestones
 
 - [x] GUI: CustomTkinter desktop shell matching the reference screenshots.
-- [x] Chatbot: Gemini-powered bot for direct client interaction.
+- [x] Chatbot: Gemini/OpenAI-powered bot for direct client interaction.
 - [x] Game: Tkinter Whack-a-Mole with single-player score submission.
 - [x] Multiplayer Game: server-authoritative graphical Tic-Tac-Toe.
 - [x] AI Picture Generation: Pollinations.ai `/aipic:` flow.
-- [x] Summary / Keywords: Gemini `/summary` and `/keywords` over real history.
+- [x] Summary / Keywords: Gemini/OpenAI `/summary` and `/keywords` over real history.
 - [x] Sentiment Analysis: local TextBlob labels and insight counts.
 - [x] Chatbot Group Interaction: `@bot` responds inside group chat context.
 
@@ -217,7 +217,7 @@ feature, and commit after each key point once git is initialized.
 - First implementation step after this setup should inspect `git status --short`
   and continue from the baseline commit.
 - Before changing code, read `AGENTS.md` and this file.
-- Keep `.env` local only. Never print or commit the real Gemini key.
+- Keep `.env` local only. Never print or commit real API keys.
 - Consider starting with protocol/data boundaries before GUI polish so feature
   integration stays clean.
 - Next step: presentation rehearsal with two visible GUI clients if desired.
@@ -427,3 +427,30 @@ feature, and commit after each key point once git is initialized.
   - `python -m unittest discover -s Chat_System\tests -v`: passed, 9 tests.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed and regenerated main
     chat, Whack-a-Mole, result, and Tic-Tac-Toe screenshots.
+
+## 2026-05-10 Final Guideline and Bonus Audit
+
+- Re-read `Final Project Guideline.docx` and
+  `Bonus Topics - Implementation Support Guide.docx`.
+- Confirmed covered requirements:
+  - GUI displays sent and received messages, has text input, Send button,
+    real-time socket updates, login, emoji, search, and integrated feature
+    buttons.
+  - Chatbot has context, personality, direct `/bot`, and group `@bot` support.
+  - Online gaming includes both single-player Whack-a-Mole leaderboard and
+    graphical server-synchronized multiplayer Tic-Tac-Toe.
+  - Bonus features include Pollinations `/aipic:`, LLM `/summary` and
+    `/keywords` over real chat history, and local TextBlob sentiment tags.
+- Fixed the main loophole found during audit:
+  - existing text AI only used `GEMINI_API_KEY`; added `OPENAI_API_KEY`
+    fallback through `services/openai_client.py` and `services/llm_client.py`,
+    so the demo works when only the OpenAI key is configured.
+  - stripped API key values and redacted external-smoke failures to avoid key
+    leakage in errors.
+- Added extra rule tests for Tic-Tac-Toe O-win and draw detection.
+- Tests run:
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 12 tests.
+  - `python -m py_compile` over all `Chat_System` Python files: passed.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed.
+  - `python Chat_System\tests\external_smoke.py`: passed with real external AI
+    and Pollinations calls; no API key was committed.

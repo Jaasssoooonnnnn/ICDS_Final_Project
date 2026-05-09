@@ -23,6 +23,8 @@ def load_project_env() -> None:
 def env_value(name: str, default: str | None = None, required: bool = False) -> str:
     load_project_env()
     value = os.getenv(name, default)
+    if isinstance(value, str):
+        value = value.strip()
     if required and not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value or ""

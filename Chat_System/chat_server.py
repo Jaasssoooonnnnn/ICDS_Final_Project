@@ -2,7 +2,7 @@
 Socket chat server for the ICDS final project.
 
 The original JSON-over-socket framing is preserved in chat_utils.py. This
-server extends the old switchboard with explicit project actions for Gemini,
+server extends the old switchboard with explicit project actions for LLM chat,
 Pollinations image generation, local sentiment, and the game leaderboard.
 """
 
@@ -49,8 +49,8 @@ from protocol import (
     require_fields,
 )
 from services.chat_history import ChatHistory
-from services.gemini_client import GeminiClient
 from services.leaderboard import Leaderboard
+from services.llm_client import LLMClient
 from services.pollinations_client import PollinationsClient
 from services.sentiment import analyze_sentiment
 from services.tic_tac_toe import TicTacToeRoom
@@ -69,7 +69,7 @@ class Server:
         self.history = ChatHistory()
         self.leaderboard = Leaderboard()
         self.pollinations = PollinationsClient()
-        self._gemini = None
+        self._llm = None
         self.bot_personality = "concise helpful teammate"
         self.ttt_rooms = {}
         self.ttt_waiting_room_id = None
@@ -84,10 +84,10 @@ class Server:
         self.sonnet = indexer.PIndex(str(BASE_DIR / "AllSonnets.txt"))
 
     @property
-    def gemini(self):
-        if self._gemini is None:
-            self._gemini = GeminiClient()
-        return self._gemini
+    def llm(self):
+        if self._llm is None:
+            self._llm = LLMClient()
+        return self._llm
 
     def send_json(self, sock, payload):
         mysend(sock, json.dumps(payload))
@@ -422,7 +422,7 @@ class Server:
     def handle_bot(self, prompt, from_sock, broadcast=False):
         from_name = self.logged_sock2name[from_sock]
         try:
-            reply = self.gemini.bot_reply(prompt, self.history.context(), self.bot_personality)
+            reply = self.llm.bot_reply(prompt, self.history.context(), self.bot_personality)
             record = self.history.add(BOT_NAME, reply, kind="bot")
             payload = {
                 "action": ACTION_BOT_RESPONSE,
@@ -439,7 +439,7 @@ class Server:
                 "status": "error",
                 "from": BOT_NAME,
                 "sender": BOT_NAME,
-                "message": f"Gemini error: {exc}",
+                "message": f"AI error: {exc}",
                 "error": str(exc),
                 "timestamp": time.strftime("%H:%M", time.localtime()),
                 "requester": from_name,
@@ -471,7 +471,7 @@ class Server:
 
     def handle_summary(self, from_sock):
         try:
-            summary = self.gemini.summarize(self.history.context())
+            summary = self.llm.summarize(self.history.context())
             record = self.history.add(BOT_NAME, summary, kind="summary")
             payload = {
                 "action": ACTION_SUMMARY_RESPONSE,
@@ -485,7 +485,7 @@ class Server:
                 "action": ACTION_SUMMARY_RESPONSE,
                 "status": "error",
                 "from": BOT_NAME,
-                "message": f"Gemini summary error: {exc}",
+                "message": f"AI summary error: {exc}",
                 "error": str(exc),
                 "timestamp": time.strftime("%H:%M", time.localtime()),
             }
@@ -493,7 +493,7 @@ class Server:
 
     def handle_keywords(self, from_sock):
         try:
-            keywords = self.gemini.keywords(self.history.context())
+            keywords = self.llm.keywords(self.history.context())
             text = ", ".join(keywords)
             record = self.history.add(BOT_NAME, text, kind="keywords")
             payload = {
@@ -509,7 +509,7 @@ class Server:
                 "action": ACTION_KEYWORDS_RESPONSE,
                 "status": "error",
                 "from": BOT_NAME,
-                "message": f"Gemini keywords error: {exc}",
+                "message": f"AI keywords error: {exc}",
                 "error": str(exc),
                 "timestamp": time.strftime("%H:%M", time.localtime()),
             }

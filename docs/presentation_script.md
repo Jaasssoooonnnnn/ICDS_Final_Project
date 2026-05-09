@@ -11,7 +11,7 @@ complete desktop experience and AI/game extensions.
 Mention the core features:
 
 - Modern GUI chat client.
-- Gemini chatbot with context and configurable personality.
+- Gemini/OpenAI chatbot with context and configurable personality.
 - Group bot interaction through `@bot`.
 - AI image generation through Pollinations.ai.
 - Summary and keyword extraction over real chat history.
@@ -64,6 +64,8 @@ Explain the architecture:
 - `chat_utils.py` keeps the original JSON-over-socket framing.
 - `protocol.py` defines explicit action names.
 - `services/gemini_client.py` isolates Gemini calls.
+- `services/openai_client.py` provides an OpenAI Responses API fallback.
+- `services/llm_client.py` selects Gemini first, then OpenAI.
 - `services/pollinations_client.py` isolates image generation.
 - `services/sentiment.py` keeps sentiment local.
 - `services/chat_history.py` stores recent context for summary, keywords, and
