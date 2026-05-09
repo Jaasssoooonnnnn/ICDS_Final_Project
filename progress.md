@@ -288,8 +288,10 @@ feature, and commit after each key point once git is initialized.
 - User reported the mole still appeared slightly above the hole.
 - Changed mole rendering to use `anchor="s"` so the sprite's bottom edge, not
   its center point, aligns to each hole's front edge.
-- Retuned hole anchor coordinates for all six holes.
+- Retuned hole anchor coordinates for all six holes, then corrected the bottom
+  row upward so the sprite does not spill below the lower holes.
 - Tests run:
   - `python -m py_compile Chat_System\ui\game_window.py Chat_System\tests\gui_visual_smoke.py`: passed.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed; reviewed
-    `tmp/ui_refactor/game_live_refactor.png`.
+    `tmp/ui_refactor/game_live_refactor.png` with the smoke test pinned to a
+    bottom-row hole.

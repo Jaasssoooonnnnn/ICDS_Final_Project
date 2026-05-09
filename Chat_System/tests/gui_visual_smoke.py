@@ -90,6 +90,9 @@ def main():
 
     game = WhackAMoleWindow(gui.Window, "Arjun Mehta", lambda score: sent.append({"score": score}), duration=5)
     game.window.geometry("1040x700+120+120")
+    game.canvas.delete("mole")
+    x, y = game.holes[3]
+    game.canvas.create_image(x, y, image=game.images["mole"], anchor="s", tags=("mole",))
     capture_window(game.window, out_dir / "game_live_refactor.png")
     game.score = 23
     game._finish()
