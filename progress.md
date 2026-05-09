@@ -282,3 +282,14 @@ feature, and commit after each key point once git is initialized.
   from the holes instead of floating above the field.
 - Updated GUI smoke geometry to capture the intended 1440x860 desktop layout
   and full 1040x700 game window.
+
+## 2026-05-09 Mole Anchor Fix
+
+- User reported the mole still appeared slightly above the hole.
+- Changed mole rendering to use `anchor="s"` so the sprite's bottom edge, not
+  its center point, aligns to each hole's front edge.
+- Retuned hole anchor coordinates for all six holes.
+- Tests run:
+  - `python -m py_compile Chat_System\ui\game_window.py Chat_System\tests\gui_visual_smoke.py`: passed.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed; reviewed
+    `tmp/ui_refactor/game_live_refactor.png`.

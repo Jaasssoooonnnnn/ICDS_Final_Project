@@ -56,12 +56,12 @@ class WhackAMoleWindow:
         self.canvas.pack(fill="both", expand=True)
 
         self.holes = [
-            (230, 350),
-            (520, 350),
-            (810, 350),
-            (230, 525),
-            (520, 525),
-            (810, 525),
+            (230, 452),
+            (520, 452),
+            (810, 452),
+            (230, 628),
+            (520, 628),
+            (810, 628),
         ]
 
         self._load_assets()
@@ -131,7 +131,7 @@ class WhackAMoleWindow:
         self.canvas.delete("mole")
         self.active_hole = random.randrange(len(self.holes))
         x, y = self.holes[self.active_hole]
-        self.canvas.create_image(x, y - 58, image=self.images["mole"], tags=("mole",))
+        self.canvas.create_image(x, y, image=self.images["mole"], anchor="s", tags=("mole",))
         self.canvas.tag_bind("mole", "<Button-1>", self._hit_mole)
         delay = max(420, 900 - (self.duration - self.time_left) * 14)
         self.after_ids.append(self.window.after(delay, self._spawn_mole))
