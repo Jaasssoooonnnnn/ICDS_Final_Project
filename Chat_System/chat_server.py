@@ -264,10 +264,18 @@ class Server:
                 return
 
         room = None
+        waiting_candidates = []
         if self.ttt_waiting_room_id:
-            candidate = self.ttt_rooms.get(self.ttt_waiting_room_id)
+            waiting_candidates.append(self.ttt_rooms.get(self.ttt_waiting_room_id))
+        waiting_candidates.extend(
+            candidate
+            for candidate in self.ttt_rooms.values()
+            if candidate and candidate.room_id != self.ttt_waiting_room_id
+        )
+        for candidate in waiting_candidates:
             if candidate and candidate.status == "waiting" and username not in candidate.players:
                 room = candidate
+                break
 
         if room is None:
             room_id = self.next_ttt_room_id()
