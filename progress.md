@@ -349,3 +349,19 @@ feature, and commit after each key point once git is initialized.
   - `python -m py_compile Chat_System\GUI.py Chat_System\ui\message_widgets.py`: passed.
   - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed during review.
+
+## 2026-05-09 Interactive Header and AI Setup
+
+- Confirmed local `.env` exists from `.env.example`; it is ignored by Git and
+  still needs a real `GEMINI_API_KEY` before Gemini-backed AI commands work.
+- Wired previously static header controls in `Chat_System/GUI.py`:
+  - search opens a query dialog and sends the existing server `search` action,
+  - pin toggles a room-pinned status message,
+  - alerts toggle muted/enabled status,
+  - menu shows the available command shortcuts.
+- Replaced the static ChatBot Settings mock selector with a real
+  Friendly/Humorous/Serious personality dropdown that sends `/personality:` to
+  the server.
+- Tests run:
+  - `python -m py_compile Chat_System\GUI.py`: passed.
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.

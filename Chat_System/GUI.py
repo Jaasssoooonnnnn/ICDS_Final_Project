@@ -91,6 +91,9 @@ class GUI:
         self.online_users = []
         self.nav_buttons = {}
         self.member_badge = None
+        self.room_pinned = False
+        self.notifications_enabled = True
+        self.personality_var = tk.StringVar(value="Friendly")
 
         self.chat_scroll = None
         self.entryMsg = None
@@ -297,8 +300,25 @@ class GUI:
         self.member_count_label.grid(row=1, column=0, sticky="nw", padx=24, pady=(0, 14))
         tools = ctk.CTkFrame(header, fg_color="transparent")
         tools.grid(row=0, column=2, rowspan=2, padx=(0, 22), pady=26)
-        for symbol in ("🔍", "📌", "🔔", "⋮"):
-            ctk.CTkLabel(tools, text=symbol, width=34, height=34, text_color="#0f172a", font=ctk.CTkFont(size=18)).pack(side="left", padx=6)
+        tool_actions = (
+            ("⌕", self.open_search),
+            ("⌖", self.toggle_pin),
+            ("!", self.toggle_notifications),
+            ("⋯", self.show_command_menu),
+        )
+        for symbol, command in tool_actions:
+            ctk.CTkButton(
+                tools,
+                text=symbol,
+                width=34,
+                height=34,
+                corner_radius=10,
+                fg_color="transparent",
+                hover_color="#edf0ff",
+                text_color="#0f172a",
+                font=ctk.CTkFont(size=18, weight="bold"),
+                command=command,
+            ).pack(side="left", padx=5)
         self.status_pill = ctk.CTkLabel(
             header,
             text="Connecting",
@@ -364,10 +384,22 @@ class GUI:
 
         settings = self._panel_card(panel, "ChatBot Settings", "▣")
         ctk.CTkLabel(settings, text="Choose ChatBot Personality", anchor="w", text_color=COLORS["muted"], font=ctk.CTkFont(size=12)).pack(fill="x", padx=16, pady=(0, 10))
-        mode_select = ctk.CTkFrame(settings, fg_color="#f7f4ff", corner_radius=10, border_width=1, border_color=COLORS["purple"])
-        mode_select.pack(fill="x", padx=16, pady=(0, 16))
-        ctk.CTkLabel(mode_select, text="☻  Friendly", text_color=COLORS["purple"], font=ctk.CTkFont(size=13, weight="bold")).pack(side="left", padx=14, pady=11)
-        ctk.CTkLabel(mode_select, text="Options ▾", text_color=COLORS["muted"], font=ctk.CTkFont(size=10)).pack(side="right", padx=12, pady=11)
+        ctk.CTkOptionMenu(
+            settings,
+            variable=self.personality_var,
+            values=["Friendly", "Humorous", "Serious"],
+            height=38,
+            corner_radius=10,
+            fg_color="#f7f4ff",
+            button_color=COLORS["purple"],
+            button_hover_color="#4338ca",
+            text_color=COLORS["purple"],
+            dropdown_fg_color="#ffffff",
+            dropdown_hover_color="#edf0ff",
+            dropdown_text_color=COLORS["text"],
+            font=ctk.CTkFont(size=13, weight="bold"),
+            command=self.set_personality,
+        ).pack(fill="x", padx=16, pady=(0, 16))
 
         leaderboard = self._panel_card(panel, "Leaderboard", "🏆")
         tabs = ctk.CTkFrame(leaderboard, fg_color="#edf1f8", corner_radius=12)
@@ -457,6 +489,46 @@ class GUI:
             self.request_keywords()
         elif action == "AI Pic":
             self.prompt_image()
+
+    def open_search(self):
+        dialog = ctk.CTkInputDialog(text="Search your chat history", title="Search")
+        term = (dialog.get_input() or "").strip()
+        if not term:
+            return
+        self.add_bot_card(f"Searching local chat history for: {term}", title="Search")
+        self._safe_send({"action": "search", "target": term})
+
+    def toggle_pin(self):
+        self.room_pinned = not self.room_pinned
+        status = "pinned" if self.room_pinned else "unpinned"
+        self.add_bot_card(f"Distributed Chat Room is now {status} for this session.", title="Pin")
+
+    def toggle_notifications(self):
+        self.notifications_enabled = not self.notifications_enabled
+        status = "enabled" if self.notifications_enabled else "muted"
+        self.add_bot_card(f"Room alerts are {status}.", title="Alerts")
+
+    def show_command_menu(self):
+        commands = (
+            "Available commands:\n"
+            "/bot your question - ask the AI assistant directly\n"
+            "@bot your question - ask the AI assistant in chat\n"
+            "/summary - summarize recent chat\n"
+            "/keywords - extract important keywords\n"
+            "/aipic: prompt - generate an AI image\n"
+            "/personality: style - change bot personality"
+        )
+        self.add_bot_card(commands, title="Menu")
+
+    def set_personality(self, choice):
+        profiles = {
+            "Friendly": "friendly and supportive teaching assistant",
+            "Humorous": "lightly humorous but still concise project teammate",
+            "Serious": "serious, concise, technical project reviewer",
+        }
+        personality = profiles.get(choice, profiles["Friendly"])
+        self.add_bot_card(f"Setting bot personality to {choice}.", title="ChatBot Settings")
+        self._safe_send({"action": "exchange", "sender": self.name, "message": f"/personality: {personality}"})
 
     def _nav_action(self, key):
         return lambda: self._run_quick_action(
@@ -579,6 +651,9 @@ class GUI:
             self._update_leaderboard(payload)
         elif action == "list":
             self._update_online_users(payload.get("users") or payload.get("results") or "")
+        elif action == "search":
+            results = payload.get("results") or "No matching chat history found."
+            self.add_bot_card(results, title="Search")
         elif action == "connect":
             self.add_bot_card(f"{payload.get('from', 'A peer')} joined the chat.", title="Room")
         elif action == "disconnect":
