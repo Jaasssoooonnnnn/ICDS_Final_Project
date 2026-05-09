@@ -64,9 +64,10 @@ class Avatar(ctk.CTkLabel):
 class SentimentChip(ctk.CTkLabel):
     def __init__(self, master, sentiment):
         bg, fg = SENTIMENT_STYLES.get(sentiment, SENTIMENT_STYLES["Neutral"])
+        emoji = {"Positive": "😊", "Neutral": "😐", "Negative": "😡"}.get(sentiment, "")
         super().__init__(
             master,
-            text=sentiment,
+            text=f"{sentiment} {emoji}".strip(),
             height=22,
             corner_radius=11,
             fg_color=bg,
@@ -81,14 +82,13 @@ class MessageCard(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
 
         row = ctk.CTkFrame(self, fg_color="transparent")
-        row.grid(row=0, column=0, sticky="e" if outgoing else "w", padx=0, pady=6)
+        row.grid(row=0, column=0, sticky="e" if outgoing else "w", padx=0, pady=4)
 
         bubble = self._bubble(row, sender, timestamp, text, sentiment, outgoing)
-        avatar = Avatar(row, sender, size=38, color="#2f80ed" if outgoing else None)
         if outgoing:
-            bubble.pack(side="right", padx=(0, 9))
-            avatar.pack(side="right", padx=(0, 2), anchor="n")
+            bubble.pack(side="right", padx=(0, 4))
         else:
+            avatar = Avatar(row, sender, size=38)
             avatar.pack(side="left", padx=(2, 9), anchor="n")
             bubble.pack(side="left")
 
@@ -122,7 +122,7 @@ class MessageCard(ctk.CTkFrame):
             bubble,
             text=text,
             justify="left",
-            wraplength=330,
+            wraplength=540 if outgoing else 520,
             text_color=COLORS["text"],
             font=ctk.CTkFont(size=13),
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(5, 7))
@@ -138,7 +138,7 @@ class BotCard(ctk.CTkFrame):
     def __init__(self, master, title, timestamp, text):
         super().__init__(master, fg_color="transparent", corner_radius=0)
         row = ctk.CTkFrame(self, fg_color="transparent")
-        row.pack(anchor="w", pady=3)
+        row.pack(anchor="w", pady=4)
         Avatar(row, "ICDS Bot", size=38, color="#7c8cff").pack(side="left", padx=(2, 9), anchor="n")
 
         bubble = ctk.CTkFrame(
@@ -173,7 +173,7 @@ class BotCard(ctk.CTkFrame):
             bubble,
             text=text,
             justify="left",
-            wraplength=430,
+            wraplength=520,
             text_color=COLORS["text"],
             font=ctk.CTkFont(size=13),
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 11))

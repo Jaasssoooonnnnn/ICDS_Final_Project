@@ -330,3 +330,22 @@ feature, and commit after each key point once git is initialized.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed and screenshot
     reviewed at `tmp/ui_refactor/main_chat_refactor.png`.
   - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
+
+## 2026-05-09 Reference GUI Detail Fixes
+
+- Addressed user review notes on the reference-style GUI:
+  - reduced profile card height and improved initials avatar/badge balance,
+  - moved participant count beside the room title,
+  - replaced temporary glyphs with consistent emoji-style navigation and
+    action icons,
+  - tightened message spacing, widened message bubbles, and removed the
+    outgoing avatar,
+  - reduced composer height and improved placeholder/tool-button alignment,
+  - made Quick Actions clearer with document/tag/image icons,
+  - changed ChatBot Settings to a compact personality selector,
+  - fixed leaderboard score alignment and demo rankings,
+  - added sentiment emojis on chips and count rows.
+- Tests run:
+  - `python -m py_compile Chat_System\GUI.py Chat_System\ui\message_widgets.py`: passed.
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed during review.
