@@ -365,3 +365,16 @@ feature, and commit after each key point once git is initialized.
 - Tests run:
   - `python -m py_compile Chat_System\GUI.py`: passed.
   - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.
+
+## 2026-05-09 Game Result Modal Cleanup
+
+- User reported the Whack-a-Mole result screen artwork overlapped with the
+  score panel.
+- Removed the decorative result illustration from the end-game modal and kept
+  a single centered white result card with score, encouragement text, Play
+  Again, and Submit Score controls.
+- Tests run:
+  - `python -m py_compile Chat_System\ui\game_window.py`: passed.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed; reviewed
+    `tmp/ui_refactor/game_result_refactor.png` and confirmed no result artwork
+    remains behind the card.

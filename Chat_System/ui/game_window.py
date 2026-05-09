@@ -85,9 +85,6 @@ class WhackAMoleWindow:
         mole = mole.crop(mole.getbbox()).resize((118, 142), Image.Resampling.LANCZOS)
         self.images["mole"] = ImageTk.PhotoImage(mole)
 
-        result = sheet.crop((485, 540, 1448, 932)).resize((560, 230), Image.Resampling.LANCZOS)
-        self.images["result"] = ImageTk.PhotoImage(result)
-
     def _draw_scene(self):
         self.canvas.delete("all")
         self.canvas.create_rectangle(0, 0, 1040, 700, fill="#dff7ff", outline="")
@@ -164,16 +161,15 @@ class WhackAMoleWindow:
 
     def _result_modal(self):
         self.canvas.create_rectangle(0, 0, 1040, 700, fill="#eef6ff", stipple="gray25", outline="", tags=("result",))
-        self.canvas.create_image(520, 360, image=self.images["result"], tags=("result",))
-        self._rounded_rect(355, 244, 685, 486, 18, "#ffffff", "#d9def0", width=2, tags=("result_panel", "result"))
-        self.canvas.create_text(520, 280, text="Game finished!", fill=GAME["text"], font=("Helvetica", 24, "bold"), tags=("result",))
-        self.canvas.create_text(520, 320, text="Your score", fill="#697386", font=("Helvetica", 14), tags=("result",))
-        self.canvas.create_text(520, 368, text=str(self.score), fill=GAME["purple"], font=("Helvetica", 42, "bold"), tags=("result",))
-        self.canvas.create_text(520, 405, text=f"Great job, {self.player_name}!", fill=GAME["green"], font=("Helvetica", 14, "bold"), tags=("result",))
-        self._rounded_rect(385, 436, 510, 470, 9, "#ffffff", "#d7def0", width=2, tags=("play_again", "result"))
-        self._rounded_rect(532, 436, 655, 470, 9, GAME["purple"], GAME["purple"], width=2, tags=("submit", "result"))
-        self.canvas.create_text(448, 453, text="Play Again", fill="#374151", font=("Helvetica", 12, "bold"), tags=("play_again", "result"))
-        self.canvas.create_text(594, 453, text="Submit Score", fill="#ffffff", font=("Helvetica", 12, "bold"), tags=("submit", "result"))
+        self._rounded_rect(355, 230, 685, 500, 20, "#ffffff", "#d9def0", width=2, tags=("result_panel", "result"))
+        self.canvas.create_text(520, 278, text="Game finished!", fill=GAME["text"], font=("Helvetica", 24, "bold"), tags=("result",))
+        self.canvas.create_text(520, 324, text="Your score", fill="#697386", font=("Helvetica", 14), tags=("result",))
+        self.canvas.create_text(520, 376, text=str(self.score), fill=GAME["purple"], font=("Helvetica", 44, "bold"), tags=("result",))
+        self.canvas.create_text(520, 420, text=f"Great job, {self.player_name}!", fill=GAME["green"], font=("Helvetica", 14, "bold"), tags=("result",))
+        self._rounded_rect(385, 452, 510, 488, 9, "#ffffff", "#d7def0", width=2, tags=("play_again", "result"))
+        self._rounded_rect(532, 452, 655, 488, 9, GAME["purple"], GAME["purple"], width=2, tags=("submit", "result"))
+        self.canvas.create_text(448, 470, text="Play Again", fill="#374151", font=("Helvetica", 12, "bold"), tags=("play_again", "result"))
+        self.canvas.create_text(594, 470, text="Submit Score", fill="#ffffff", font=("Helvetica", 12, "bold"), tags=("submit", "result"))
         self.canvas.tag_bind("play_again", "<Button-1>", lambda _event: self.restart())
         self.canvas.tag_bind("submit", "<Button-1>", lambda _event: self.submit_score())
 
