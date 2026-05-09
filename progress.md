@@ -307,3 +307,26 @@ feature, and commit after each key point once git is initialized.
 - Tests run:
   - `python -m py_compile Chat_System\tests\gui_visual_smoke.py Chat_System\ui\game_window.py`: passed.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed.
+
+## 2026-05-09 Reference Image GUI Rebuild
+
+- User provided `C:\Users\njh\Desktop\academic document\icds_final\image.png`
+  and requested the GUI be restored as closely as possible to that reference.
+- Rebuilt `Chat_System/GUI.py` toward the reference:
+  - light `ICDS Chat+` three-column shell,
+  - lavender profile card with level badge,
+  - left navigation matching Chat/Bot/Games/AI Images/Summary/Keywords/Settings,
+  - central `Distributed Chat Room` header and top action glyphs,
+  - bottom composer with Emoji/Files/Summary/Keywords controls and Send button,
+  - right cards for Online Users, Quick Actions, ChatBot Settings, and
+    Leaderboard.
+- Reworked `Chat_System/ui/message_widgets.py` toward the reference bubble
+  style with compact avatars, sender/time header, light incoming/outgoing
+  bubbles, and small sentiment chips.
+- Updated GUI smoke window to `1560x900` to match the reference proportions and
+  avoid title clipping.
+- Tests run:
+  - `python -m py_compile Chat_System\GUI.py Chat_System\ui\message_widgets.py Chat_System\tests\gui_visual_smoke.py`: passed.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed and screenshot
+    reviewed at `tmp/ui_refactor/main_chat_refactor.png`.
+  - `python -m unittest discover -s Chat_System\tests -v`: passed, 8 tests.

@@ -72,7 +72,7 @@ def main():
     gui = GUI(lambda msg: sent.append(json.loads(msg)), lambda: "", FakeSM(), socket.socket())
     gui.name = "Arjun Mehta"
     gui.layout("Arjun Mehta")
-    gui.Window.geometry("1440x860+60+60")
+    gui.Window.geometry("1560x900+60+60")
     gui._set_status("Connected", "#22c55e")
     gui._update_online_users(["Priya Sharma", "Rohan Verma", "Nikita Singh", "Karan Gupta", "Sneha Iyer", "Meera Joshi"])
     gui.add_message("Priya Sharma", "Great work on the prototype! The new GUI looks clean and modern.", "Positive", False)
