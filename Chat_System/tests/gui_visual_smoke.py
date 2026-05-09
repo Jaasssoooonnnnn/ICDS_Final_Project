@@ -101,7 +101,7 @@ def main():
     game.close()
 
     ttt = TicTacToeWindow(gui.Window, "Arjun Mehta", lambda payload: sent.append(payload))
-    ttt.window.geometry("430x540+140+140")
+    ttt.window.geometry("430x640+140+80")
     ttt.handle_message(
         {
             "action": "ttt_state",

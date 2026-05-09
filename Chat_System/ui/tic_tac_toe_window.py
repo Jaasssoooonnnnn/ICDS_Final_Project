@@ -34,7 +34,7 @@ class TicTacToeWindow:
 
         self.window = ctk.CTkToplevel(master)
         self.window.title("Multiplayer Tic-Tac-Toe")
-        self.window.geometry("430x540")
+        self.window.geometry("430x640")
         self.window.resizable(False, False)
         self.window.configure(fg_color=COLORS["bg"])
         self.window.protocol("WM_DELETE_WINDOW", self.close)
@@ -49,19 +49,19 @@ class TicTacToeWindow:
 
     def _build(self):
         wrapper = ctk.CTkFrame(self.window, fg_color=COLORS["card"], corner_radius=16, border_width=1, border_color=COLORS["border"])
-        wrapper.pack(fill="both", expand=True, padx=18, pady=18)
+        wrapper.pack(fill="both", expand=True, padx=14, pady=14)
 
-        ctk.CTkLabel(wrapper, text="Multiplayer Tic-Tac-Toe", text_color=COLORS["text"], font=ctk.CTkFont(size=24, weight="bold")).pack(pady=(18, 4))
-        ctk.CTkLabel(wrapper, text="Play with another connected client", text_color=COLORS["muted"], font=ctk.CTkFont(size=13)).pack(pady=(0, 14))
+        ctk.CTkLabel(wrapper, text="Multiplayer Tic-Tac-Toe", text_color=COLORS["text"], font=ctk.CTkFont(size=22, weight="bold")).pack(pady=(14, 3))
+        ctk.CTkLabel(wrapper, text="Play with another connected client", text_color=COLORS["muted"], font=ctk.CTkFont(size=12)).pack(pady=(0, 10))
 
         meta = ctk.CTkFrame(wrapper, fg_color="#f3f6ff", corner_radius=12)
-        meta.pack(fill="x", padx=20, pady=(0, 14))
+        meta.pack(fill="x", padx=18, pady=(0, 12))
         self.room_label = self._meta_label(meta, "Room: Not joined")
         self.symbol_label = self._meta_label(meta, "You are: -")
         self.turn_label = self._meta_label(meta, "Turn: -")
 
         board = ctk.CTkFrame(wrapper, fg_color="transparent")
-        board.pack(pady=(2, 12))
+        board.pack(pady=(0, 10))
         for row in range(3):
             board.grid_rowconfigure(row, weight=1)
             values = []
@@ -69,8 +69,8 @@ class TicTacToeWindow:
                 button = ctk.CTkButton(
                     board,
                     text="",
-                    width=108,
-                    height=88,
+                    width=96,
+                    height=72,
                     corner_radius=12,
                     fg_color="#ffffff",
                     hover_color="#eef2ff",
@@ -85,10 +85,10 @@ class TicTacToeWindow:
             self.cells.append(values)
 
         self.status_label = ctk.CTkLabel(wrapper, text="", wraplength=350, text_color=COLORS["text"], font=ctk.CTkFont(size=13, weight="bold"))
-        self.status_label.pack(fill="x", padx=22, pady=(0, 12))
+        self.status_label.pack(fill="x", padx=22, pady=(0, 10))
 
         actions = ctk.CTkFrame(wrapper, fg_color="transparent")
-        actions.pack(fill="x", padx=20, pady=(0, 18))
+        actions.pack(fill="x", padx=20, pady=(0, 14))
         ctk.CTkButton(actions, text="Join Game", height=38, corner_radius=10, fg_color=COLORS["purple"], hover_color="#4338ca", command=self.join_game).pack(side="left", expand=True, fill="x", padx=(0, 8))
         ctk.CTkButton(actions, text="Restart", height=38, corner_radius=10, fg_color="#eef2ff", hover_color="#dfe6ff", text_color=COLORS["purple"], command=self.restart).pack(side="left", expand=True, fill="x", padx=4)
         ctk.CTkButton(actions, text="Close", height=38, corner_radius=10, fg_color="#f1f5f9", hover_color="#e2e8f0", text_color=COLORS["text"], command=self.close).pack(side="left", expand=True, fill="x", padx=(8, 0))
