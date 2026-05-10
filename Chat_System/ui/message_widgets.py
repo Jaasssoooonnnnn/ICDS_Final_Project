@@ -8,6 +8,7 @@ from __future__ import annotations
 import io
 import os
 import threading
+import tkinter as tk
 import urllib.request
 
 import customtkinter as ctk
@@ -45,6 +46,43 @@ def _avatar_text(name: str) -> str:
     if stripped == "ICDS Bot":
         return "AI"
     return stripped[:1].upper() or "?"
+
+
+def _text_height(text: str, wrap_chars: int) -> int:
+    lines = 0
+    for part in (text or " ").splitlines() or [" "]:
+        lines += max(1, (len(part) // wrap_chars) + 1)
+    return min(max(lines, 1), 10)
+
+
+class SelectableText(tk.Text):
+    def __init__(self, master, text, bg, fg, wrap_chars=64, font_size=13, width=64):
+        super().__init__(
+            master,
+            height=_text_height(text, wrap_chars),
+            width=width,
+            wrap="word",
+            relief="flat",
+            borderwidth=0,
+            highlightthickness=0,
+            bg=bg,
+            fg=fg,
+            insertbackground=fg,
+            selectbackground="#c7d2fe",
+            selectforeground="#111827",
+            font=("Helvetica", font_size),
+            cursor="xterm",
+            padx=0,
+            pady=0,
+        )
+        self.insert("1.0", text or "")
+        self.configure(state="disabled")
+        self.bind("<Control-a>", self._select_all)
+        self.bind("<Control-A>", self._select_all)
+
+    def _select_all(self, _event=None):
+        self.tag_add("sel", "1.0", "end-1c")
+        return "break"
 
 
 class Avatar(ctk.CTkLabel):
@@ -118,13 +156,13 @@ class MessageCard(ctk.CTkFrame):
             font=ctk.CTkFont(size=11),
         ).grid(row=0, column=1, sticky="e", padx=(12, 0))
 
-        ctk.CTkLabel(
+        SelectableText(
             bubble,
             text=text,
-            justify="left",
-            wraplength=540 if outgoing else 520,
-            text_color=COLORS["text"],
-            font=ctk.CTkFont(size=13),
+            bg=COLORS["outgoing"] if outgoing else COLORS["incoming"],
+            fg=COLORS["text"],
+            wrap_chars=66 if outgoing else 64,
+            width=66 if outgoing else 64,
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(5, 7))
 
         chip_row = ctk.CTkFrame(bubble, fg_color="transparent")
@@ -169,13 +207,13 @@ class BotCard(ctk.CTkFrame):
         ).pack(side="left", padx=(8, 8))
         ctk.CTkLabel(header, text=timestamp, text_color=COLORS["muted"], font=ctk.CTkFont(size=10)).pack(side="left")
 
-        ctk.CTkLabel(
+        SelectableText(
             bubble,
             text=text,
-            justify="left",
-            wraplength=520,
-            text_color=COLORS["text"],
-            font=ctk.CTkFont(size=13),
+            bg=COLORS["bot"],
+            fg=COLORS["text"],
+            wrap_chars=66,
+            width=66,
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 11))
 
 
@@ -201,13 +239,14 @@ class ImageCard(ctk.CTkFrame):
             text_color="#e11d8a",
             font=ctk.CTkFont(size=12, weight="bold"),
         ).grid(row=0, column=0, sticky="w", padx=12, pady=(10, 2))
-        ctk.CTkLabel(
+        SelectableText(
             bubble,
             text=prompt,
-            justify="left",
-            wraplength=420,
-            text_color=COLORS["text"],
-            font=ctk.CTkFont(size=12),
+            bg="#f6f7fb",
+            fg=COLORS["text"],
+            wrap_chars=54,
+            font_size=12,
+            width=54,
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 8))
 
         self.image_label = ctk.CTkLabel(

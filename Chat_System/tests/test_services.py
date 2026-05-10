@@ -114,6 +114,35 @@ class ServiceTests(unittest.TestCase):
             else:
                 os.environ["OPENAI_API_KEY"] = old_openai
 
+    def test_llm_client_prefers_openai_over_gemini_by_default(self):
+        import os
+
+        old_provider = os.environ.get("AI_PROVIDER")
+        old_gemini = os.environ.get("GEMINI_API_KEY")
+        old_openai = os.environ.get("OPENAI_API_KEY")
+        os.environ.pop("AI_PROVIDER", None)
+        os.environ["GEMINI_API_KEY"] = "bad-gemini-key"
+        os.environ["OPENAI_API_KEY"] = "sk-test"
+        original_init = OpenAIClient.__init__
+        try:
+            OpenAIClient.__init__ = lambda self, api_key=None, model=None: setattr(self, "api_key", api_key or "sk-test")
+            client = LLMClient()
+            self.assertEqual(client.provider, "OpenAI")
+        finally:
+            OpenAIClient.__init__ = original_init
+            if old_provider is None:
+                os.environ.pop("AI_PROVIDER", None)
+            else:
+                os.environ["AI_PROVIDER"] = old_provider
+            if old_gemini is None:
+                os.environ.pop("GEMINI_API_KEY", None)
+            else:
+                os.environ["GEMINI_API_KEY"] = old_gemini
+            if old_openai is None:
+                os.environ.pop("OPENAI_API_KEY", None)
+            else:
+                os.environ["OPENAI_API_KEY"] = old_openai
+
     def test_pollinations_url_encodes_prompt(self):
         client = PollinationsClient(base_url="https://image.pollinations.ai/prompt", output_dir=Path(tempfile.gettempdir()))
         url = client.image_url("purple robot helper")

@@ -102,6 +102,11 @@ class GUI:
         self.leaderboard_tab_buttons = {}
         self.ttt_window = None
         self.pending_ttt_state = None
+        self.sidebar_width = 280
+        self.right_panel_width = 500
+        self.left_resize_handle = None
+        self.right_resize_handle = None
+        self.resize_mode = None
 
         self.chat_scroll = None
         self.entryMsg = None
@@ -206,18 +211,57 @@ class GUI:
         self.Window.configure(fg_color=COLORS["app_bg"])
         self.Window.protocol("WM_DELETE_WINDOW", self.close)
 
-        self.Window.grid_columnconfigure(0, minsize=280, weight=0)
+        self.Window.grid_columnconfigure(0, minsize=self.sidebar_width, weight=0)
         self.Window.grid_columnconfigure(1, weight=1)
-        self.Window.grid_columnconfigure(2, minsize=500, weight=0)
+        self.Window.grid_columnconfigure(2, minsize=self.right_panel_width, weight=0)
         self.Window.grid_rowconfigure(0, weight=1)
 
         self._build_sidebar(name)
         self._build_chat_column()
         self._build_right_panel()
+        self._install_resize_handles()
         self.add_bot_card(
             "Welcome to ICDS Chat. Use @bot, /summary, /keywords, or /aipic: your prompt when you are ready.",
             title="ICDS Bot",
         )
+
+    def _install_resize_handles(self):
+        self.left_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["border"], cursor="sb_h_double_arrow")
+        self.right_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["border"], cursor="sb_h_double_arrow")
+        self.left_resize_handle.bind("<ButtonPress-1>", lambda event: self._start_resize("left"))
+        self.right_resize_handle.bind("<ButtonPress-1>", lambda event: self._start_resize("right"))
+        self.left_resize_handle.bind("<B1-Motion>", self._drag_resize)
+        self.right_resize_handle.bind("<B1-Motion>", self._drag_resize)
+        self.left_resize_handle.bind("<Enter>", lambda _event: self.left_resize_handle.configure(bg="#aebcff"))
+        self.right_resize_handle.bind("<Enter>", lambda _event: self.right_resize_handle.configure(bg="#aebcff"))
+        self.left_resize_handle.bind("<Leave>", lambda _event: self.left_resize_handle.configure(bg=COLORS["border"]))
+        self.right_resize_handle.bind("<Leave>", lambda _event: self.right_resize_handle.configure(bg=COLORS["border"]))
+        self.Window.bind("<Configure>", self._position_resize_handles)
+        self._position_resize_handles()
+
+    def _position_resize_handles(self, _event=None):
+        if not self.left_resize_handle or not self.right_resize_handle:
+            return
+        width = max(1, self.Window.winfo_width())
+        self.left_resize_handle.place(x=max(0, self.sidebar_width - 3), y=0, width=6, relheight=1)
+        self.right_resize_handle.place(x=max(0, width - self.right_panel_width - 3), y=0, width=6, relheight=1)
+        self.left_resize_handle.lift()
+        self.right_resize_handle.lift()
+
+    def _start_resize(self, mode):
+        self.resize_mode = mode
+
+    def _drag_resize(self, event):
+        root_x = self.Window.winfo_rootx()
+        pointer_x = event.x_root - root_x
+        width = max(1, self.Window.winfo_width())
+        if self.resize_mode == "left":
+            self.sidebar_width = min(max(int(pointer_x), 220), 420)
+            self.Window.grid_columnconfigure(0, minsize=self.sidebar_width)
+        elif self.resize_mode == "right":
+            self.right_panel_width = min(max(int(width - pointer_x), 360), 680)
+            self.Window.grid_columnconfigure(2, minsize=self.right_panel_width)
+        self._position_resize_handles()
 
     def _build_sidebar(self, name):
         sidebar = ctk.CTkFrame(self.Window, fg_color=COLORS["sidebar"], corner_radius=0)

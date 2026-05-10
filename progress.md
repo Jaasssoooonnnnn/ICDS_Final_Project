@@ -454,3 +454,21 @@ feature, and commit after each key point once git is initialized.
   - `python Chat_System\tests\gui_visual_smoke.py`: passed.
   - `python Chat_System\tests\external_smoke.py`: passed with real external AI
     and Pollinations calls; no API key was committed.
+
+## 2026-05-10 Demo Usability Fixes
+
+- Fixed AI provider selection after the user configured an OpenAI key:
+  - OpenAI is now the default usable provider when `OPENAI_API_KEY` is present,
+    so an invalid old Gemini key no longer blocks `/bot`, `/summary`, or
+    `/keywords`.
+  - `AI_PROVIDER=gemini` can still force Gemini when needed.
+- Made chat message body text selectable by replacing nonselectable label
+  bodies with disabled text widgets in message, bot, and image prompt cards.
+- Added draggable vertical resize handles between the left sidebar, center chat
+  area, and right sidebar.
+- Tests run:
+  - `python -m unittest discover -s Chat_System\tests -v`: passed.
+  - `python -m py_compile` over all `Chat_System` Python files: passed.
+  - `python Chat_System\tests\gui_visual_smoke.py`: passed.
+  - `python Chat_System\tests\external_smoke.py`: passed using real external AI
+    and Pollinations calls.

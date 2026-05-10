@@ -13,18 +13,31 @@ def _usable_key(value: str) -> bool:
 
 
 class LLMClient:
-    """Use Gemini when configured, otherwise fall back to OpenAI."""
+    """Use OpenAI when configured, otherwise fall back to Gemini.
+
+    The project originally used Gemini, but the final demo environment may only
+    have an OpenAI key. Prefer OpenAI so an invalid old Gemini key cannot block
+    the valid configured provider.
+    """
 
     def __init__(self):
         load_project_env()
+        preferred = env_value("AI_PROVIDER", "").lower()
         gemini_key = env_value("GEMINI_API_KEY")
         openai_key = env_value("OPENAI_API_KEY")
-        if _usable_key(gemini_key):
+
+        if preferred == "gemini" and _usable_key(gemini_key):
             self.provider = "Gemini"
             self.client = GeminiClient(api_key=gemini_key)
+        elif preferred == "openai" and _usable_key(openai_key):
+            self.provider = "OpenAI"
+            self.client = OpenAIClient(api_key=openai_key)
         elif _usable_key(openai_key):
             self.provider = "OpenAI"
             self.client = OpenAIClient(api_key=openai_key)
+        elif _usable_key(gemini_key):
+            self.provider = "Gemini"
+            self.client = GeminiClient(api_key=gemini_key)
         else:
             raise RuntimeError("Missing AI API key: set GEMINI_API_KEY or OPENAI_API_KEY in .env")
 
