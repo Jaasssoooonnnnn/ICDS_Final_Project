@@ -143,6 +143,24 @@ class ServiceTests(unittest.TestCase):
             else:
                 os.environ["OPENAI_API_KEY"] = old_openai
 
+    def test_llm_client_falls_back_when_primary_fails(self):
+        client = LLMClient.__new__(LLMClient)
+
+        class BadPrimary:
+            def summarize(self, _context):
+                raise RuntimeError("bad primary")
+
+        class GoodFallback:
+            def summarize(self, _context):
+                return "fallback summary"
+
+        client.provider = "Gemini"
+        client.client = BadPrimary()
+        client.fallback_provider = "OpenAI"
+        client.fallback_client = GoodFallback()
+        self.assertEqual(client.summarize("Alice: hi"), "fallback summary")
+        self.assertEqual(client.provider, "OpenAI")
+
     def test_pollinations_url_encodes_prompt(self):
         client = PollinationsClient(base_url="https://image.pollinations.ai/prompt", output_dir=Path(tempfile.gettempdir()))
         url = client.image_url("purple robot helper")

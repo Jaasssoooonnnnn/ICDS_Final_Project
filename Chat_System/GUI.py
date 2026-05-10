@@ -107,6 +107,8 @@ class GUI:
         self.left_resize_handle = None
         self.right_resize_handle = None
         self.resize_mode = None
+        self.sidebar_frame = None
+        self.right_panel = None
 
         self.chat_scroll = None
         self.entryMsg = None
@@ -226,25 +228,33 @@ class GUI:
         )
 
     def _install_resize_handles(self):
-        self.left_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["border"], cursor="sb_h_double_arrow")
-        self.right_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["border"], cursor="sb_h_double_arrow")
+        self.left_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["center"], cursor="sb_h_double_arrow")
+        self.right_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["center"], cursor="sb_h_double_arrow")
         self.left_resize_handle.bind("<ButtonPress-1>", lambda event: self._start_resize("left"))
         self.right_resize_handle.bind("<ButtonPress-1>", lambda event: self._start_resize("right"))
         self.left_resize_handle.bind("<B1-Motion>", self._drag_resize)
         self.right_resize_handle.bind("<B1-Motion>", self._drag_resize)
         self.left_resize_handle.bind("<Enter>", lambda _event: self.left_resize_handle.configure(bg="#aebcff"))
         self.right_resize_handle.bind("<Enter>", lambda _event: self.right_resize_handle.configure(bg="#aebcff"))
-        self.left_resize_handle.bind("<Leave>", lambda _event: self.left_resize_handle.configure(bg=COLORS["border"]))
-        self.right_resize_handle.bind("<Leave>", lambda _event: self.right_resize_handle.configure(bg=COLORS["border"]))
+        self.left_resize_handle.bind("<Leave>", lambda _event: self.left_resize_handle.configure(bg=COLORS["center"]))
+        self.right_resize_handle.bind("<Leave>", lambda _event: self.right_resize_handle.configure(bg=COLORS["center"]))
         self.Window.bind("<Configure>", self._position_resize_handles)
         self._position_resize_handles()
 
     def _position_resize_handles(self, _event=None):
         if not self.left_resize_handle or not self.right_resize_handle:
             return
-        width = max(1, self.Window.winfo_width())
-        self.left_resize_handle.place(x=max(0, self.sidebar_width - 3), y=0, width=6, relheight=1)
-        self.right_resize_handle.place(x=max(0, width - self.right_panel_width - 3), y=0, width=6, relheight=1)
+        self.Window.update_idletasks()
+        if self.sidebar_frame is not None:
+            left_x = self.sidebar_frame.winfo_x() + self.sidebar_frame.winfo_width()
+        else:
+            left_x = self.sidebar_width
+        if self.right_panel is not None:
+            right_x = self.right_panel.winfo_x() - 6
+        else:
+            right_x = max(0, self.Window.winfo_width() - self.right_panel_width - 6)
+        self.left_resize_handle.place(x=max(0, left_x), y=0, width=6, relheight=1)
+        self.right_resize_handle.place(x=max(0, right_x), y=0, width=6, relheight=1)
         self.left_resize_handle.lift()
         self.right_resize_handle.lift()
 
@@ -265,6 +275,7 @@ class GUI:
 
     def _build_sidebar(self, name):
         sidebar = ctk.CTkFrame(self.Window, fg_color=COLORS["sidebar"], corner_radius=0)
+        self.sidebar_frame = sidebar
         sidebar.grid(row=0, column=0, sticky="nsew")
         sidebar.grid_rowconfigure(4, weight=1)
 
@@ -436,6 +447,7 @@ class GUI:
 
     def _build_right_panel(self):
         panel = ctk.CTkScrollableFrame(self.Window, fg_color=COLORS["right"], corner_radius=0, scrollbar_button_color="#cbd5e1")
+        self.right_panel = panel
         panel.grid(row=0, column=2, sticky="nsew")
         panel.grid_columnconfigure(0, weight=1)
 
