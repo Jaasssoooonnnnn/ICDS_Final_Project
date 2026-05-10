@@ -103,13 +103,15 @@ class GUI:
         self.leaderboard_tab_buttons = {}
         self.ttt_window = None
         self.pending_ttt_state = None
-        self.sidebar_width = 280
-        self.right_panel_width = 500
+        self.sidebar_width = 250
+        self.right_panel_width = 360
         self.left_resize_handle = None
         self.right_resize_handle = None
         self.resize_mode = None
         self.sidebar_frame = None
         self.right_panel = None
+        self.compact_layout = False
+        self.window_pixel_scale = None
 
         self.chat_scroll = None
         self.entryMsg = None
@@ -327,8 +329,8 @@ class GUI:
     def layout(self, name):
         self.Window.deiconify()
         self.Window.title("ICDS Chat+")
-        self.Window.geometry("1600x900")
-        self.Window.minsize(1360, 780)
+        self.Window.geometry("1280x820")
+        self.Window.minsize(820, 640)
         self.Window.configure(fg_color=COLORS["app_bg"])
         self.Window.protocol("WM_DELETE_WINDOW", self.close)
 
@@ -367,13 +369,39 @@ class GUI:
         if not self.left_resize_handle or not self.right_resize_handle:
             return
         self.Window.update_idletasks()
+        self._apply_responsive_layout()
         if self.sidebar_frame is not None:
             left_x = self.sidebar_frame.winfo_x() + self.sidebar_frame.winfo_width() - 2
         else:
             left_x = self.sidebar_width
         self.left_resize_handle.place(x=max(0, left_x), y=0, width=12, relheight=1)
         self.left_resize_handle.lift()
-        self.right_resize_handle.lift()
+        if not self.compact_layout:
+            self.right_resize_handle.lift()
+
+    def _apply_responsive_layout(self):
+        width = self.Window.winfo_width()
+        if self.window_pixel_scale is None and width > 200:
+            self.window_pixel_scale = min(max(width / 1280.0, 1.0), 3.0)
+        logical_width = width / (self.window_pixel_scale or 1.0)
+        should_compact = logical_width < 1100
+        if should_compact == self.compact_layout:
+            return
+        self.compact_layout = should_compact
+        if self.compact_layout:
+            if self.right_panel is not None:
+                self.right_panel.grid_remove()
+            if self.right_resize_handle is not None:
+                self.right_resize_handle.grid_remove()
+            self.Window.grid_columnconfigure(2, minsize=0)
+            self.Window.grid_columnconfigure(3, minsize=0)
+        else:
+            self.Window.grid_columnconfigure(2, minsize=12)
+            self.Window.grid_columnconfigure(3, minsize=self.right_panel_width)
+            if self.right_resize_handle is not None:
+                self.right_resize_handle.grid(row=0, column=2, sticky="ns")
+            if self.right_panel is not None:
+                self.right_panel.grid(row=0, column=3, sticky="nsew")
 
     def _start_resize(self, mode):
         self.resize_mode = mode
@@ -386,10 +414,12 @@ class GUI:
         pointer_x = event.x_root - root_x
         width = max(1, self.Window.winfo_width())
         if self.resize_mode == "left":
-            self.sidebar_width = min(max(int(pointer_x), 220), 420)
+            self.sidebar_width = min(max(int(pointer_x), 190), 360)
             self.Window.grid_columnconfigure(0, minsize=self.sidebar_width)
         elif self.resize_mode == "right":
-            self.right_panel_width = min(max(int(width - pointer_x), 380), 760)
+            if self.compact_layout:
+                return
+            self.right_panel_width = min(max(int(width - pointer_x), 260), 560)
             self.Window.grid_columnconfigure(3, minsize=self.right_panel_width)
         self.Window.update_idletasks()
         self._position_resize_handles()
@@ -419,7 +449,7 @@ class GUI:
             text_color=COLORS["text"],
         ).pack(side="left", padx=(12, 0))
 
-        user = ctk.CTkFrame(sidebar, width=226, height=176, fg_color="#eee8ff", corner_radius=15, border_width=1, border_color="#d9d4ff")
+        user = ctk.CTkFrame(sidebar, width=206, height=176, fg_color="#eee8ff", corner_radius=15, border_width=1, border_color="#d9d4ff")
         user.grid_propagate(False)
         user.pack_propagate(False)
         user.grid(row=1, column=0, sticky="ew", padx=30, pady=(0, 26))
@@ -431,7 +461,7 @@ class GUI:
         ctk.CTkLabel(user, text="Student ID: 2023123456", anchor="w", text_color=COLORS["muted"], font=ctk.CTkFont(size=11)).pack(fill="x", padx=18, pady=(1, 10))
 
         nav = ctk.CTkFrame(sidebar, fg_color="transparent")
-        nav.grid(row=2, column=0, sticky="ew", padx=30, pady=(0, 16))
+        nav.grid(row=2, column=0, sticky="ew", padx=22, pady=(0, 16))
         for index, (icon, label, key) in enumerate(NAV_ITEMS):
             selected = index == 0
             row = ctk.CTkFrame(
@@ -466,7 +496,7 @@ class GUI:
             self.nav_buttons[key] = row
 
         footer = ctk.CTkFrame(sidebar, fg_color="#ffffff", corner_radius=16, border_width=1, border_color=COLORS["border"])
-        footer.grid(row=5, column=0, sticky="ew", padx=30, pady=(0, 28))
+        footer.grid(row=5, column=0, sticky="ew", padx=22, pady=(0, 28))
         ctk.CTkLabel(footer, text="●", text_color=COLORS["green"], font=ctk.CTkFont(size=14)).pack(side="left", padx=(18, 8), pady=12)
         ctk.CTkLabel(footer, text="Connected", text_color=COLORS["text"], font=ctk.CTkFont(size=12)).pack(side="left")
 
@@ -557,12 +587,15 @@ class GUI:
 
         composer = ctk.CTkFrame(center, fg_color="#ffffff", corner_radius=0)
         composer.grid(row=2, column=0, sticky="ew")
-        composer.grid_columnconfigure(1, weight=1)
+        composer.grid_columnconfigure(0, weight=1)
         inner = ctk.CTkFrame(composer, fg_color="#ffffff", corner_radius=14, border_width=1, border_color="#aebcff")
-        inner.grid(row=0, column=0, columnspan=3, sticky="ew", padx=20, pady=16)
-        inner.grid_columnconfigure(4, weight=1)
+        inner.grid(row=0, column=0, sticky="ew", padx=20, pady=16)
+        inner.grid_columnconfigure(0, weight=1)
+        top_row = ctk.CTkFrame(inner, fg_color="transparent")
+        top_row.grid(row=0, column=0, columnspan=4, sticky="ew", padx=12, pady=(8, 2))
+        top_row.grid_columnconfigure(0, weight=1)
         self.entryMsg = ctk.CTkEntry(
-            inner,
+            top_row,
             height=42,
             corner_radius=10,
             border_width=0,
@@ -570,13 +603,23 @@ class GUI:
             placeholder_text="Type a message...",
             text_color=COLORS["text"],
         )
-        self.entryMsg.grid(row=0, column=0, columnspan=7, sticky="ew", padx=16, pady=(8, 2))
+        self.entryMsg.grid(row=0, column=0, sticky="ew", padx=(0, 10))
         self.entryMsg.bind("<Return>", lambda event: self.sendButton(self.entryMsg.get()))
+        ctk.CTkButton(
+            top_row,
+            text="Send",
+            width=86,
+            height=42,
+            corner_radius=12,
+            fg_color=COLORS["purple"],
+            hover_color="#4338ca",
+            command=lambda: self.sendButton(self.entryMsg.get()),
+        ).grid(row=0, column=1, sticky="e")
         composer_actions = (
-            ("😊  Emoji", self.insert_emoji),
-            ("📎  Files", self.show_file_notice),
-            ("📄  Summary", self.request_summary),
-            ("🏷️  Keywords", self.request_keywords),
+            (":) Emoji", self.insert_emoji),
+            ("+ Files", self.show_file_notice),
+            ("Summary", self.request_summary),
+            ("Keywords", self.request_keywords),
         )
         for col, (label, command) in enumerate(composer_actions):
             ctk.CTkButton(
@@ -589,18 +632,7 @@ class GUI:
                 text_color=COLORS["muted"],
                 font=ctk.CTkFont(size=12),
                 command=command,
-            ).grid(row=1, column=col, padx=(10 if col == 0 else 4, 4), pady=(0, 10))
-        ctk.CTkLabel(inner, text="0/2000", text_color=COLORS["muted"], font=ctk.CTkFont(size=12)).grid(row=1, column=5, padx=8, pady=(0, 10), sticky="e")
-        ctk.CTkButton(
-            inner,
-            text="➤  Send",
-            width=108,
-            height=46,
-            corner_radius=12,
-            fg_color=COLORS["purple"],
-            hover_color="#4338ca",
-            command=lambda: self.sendButton(self.entryMsg.get()),
-        ).grid(row=1, column=6, padx=(6, 12), pady=(0, 10))
+            ).grid(row=1, column=col, padx=(8 if col == 0 else 2, 2), pady=(0, 10), sticky="w")
 
     def _build_right_panel(self):
         panel = ctk.CTkScrollableFrame(self.Window, fg_color=COLORS["right"], corner_radius=0, scrollbar_button_color="#cbd5e1")
