@@ -32,6 +32,7 @@ except ImportError:
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
+ctk.set_widget_scaling(1.08)
 
 COLORS = {
     "app_bg": "#edf3ff",
@@ -228,8 +229,8 @@ class GUI:
         )
 
     def _install_resize_handles(self):
-        self.left_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["center"], cursor="sb_h_double_arrow")
-        self.right_resize_handle = tk.Frame(self.Window, width=6, bg=COLORS["center"], cursor="sb_h_double_arrow")
+        self.left_resize_handle = tk.Frame(self.Window, width=12, bg=COLORS["center"], cursor="sb_h_double_arrow")
+        self.right_resize_handle = tk.Frame(self.Window, width=14, bg=COLORS["app_bg"], cursor="sb_h_double_arrow")
         self.left_resize_handle.bind("<ButtonPress-1>", lambda event: self._start_resize("left"))
         self.right_resize_handle.bind("<ButtonPress-1>", lambda event: self._start_resize("right"))
         self.left_resize_handle.bind("<B1-Motion>", self._drag_resize)
@@ -237,7 +238,8 @@ class GUI:
         self.left_resize_handle.bind("<Enter>", lambda _event: self.left_resize_handle.configure(bg="#aebcff"))
         self.right_resize_handle.bind("<Enter>", lambda _event: self.right_resize_handle.configure(bg="#aebcff"))
         self.left_resize_handle.bind("<Leave>", lambda _event: self.left_resize_handle.configure(bg=COLORS["center"]))
-        self.right_resize_handle.bind("<Leave>", lambda _event: self.right_resize_handle.configure(bg=COLORS["center"]))
+        self.right_resize_handle.bind("<Leave>", lambda _event: self.right_resize_handle.configure(bg=COLORS["app_bg"]))
+        self.Window.bind("<ButtonRelease-1>", self._stop_resize)
         self.Window.bind("<Configure>", self._position_resize_handles)
         self._position_resize_handles()
 
@@ -246,20 +248,23 @@ class GUI:
             return
         self.Window.update_idletasks()
         if self.sidebar_frame is not None:
-            left_x = self.sidebar_frame.winfo_x() + self.sidebar_frame.winfo_width()
+            left_x = self.sidebar_frame.winfo_x() + self.sidebar_frame.winfo_width() - 2
         else:
             left_x = self.sidebar_width
         if self.right_panel is not None:
-            right_x = self.right_panel.winfo_x() - 6
+            right_x = self.right_panel.winfo_x() - 8
         else:
-            right_x = max(0, self.Window.winfo_width() - self.right_panel_width - 6)
-        self.left_resize_handle.place(x=max(0, left_x), y=0, width=6, relheight=1)
-        self.right_resize_handle.place(x=max(0, right_x), y=0, width=6, relheight=1)
+            right_x = max(0, self.Window.winfo_width() - self.right_panel_width - 8)
+        self.left_resize_handle.place(x=max(0, left_x), y=0, width=12, relheight=1)
+        self.right_resize_handle.place(x=max(0, right_x), y=0, width=14, relheight=1)
         self.left_resize_handle.lift()
         self.right_resize_handle.lift()
 
     def _start_resize(self, mode):
         self.resize_mode = mode
+
+    def _stop_resize(self, _event=None):
+        self.resize_mode = None
 
     def _drag_resize(self, event):
         root_x = self.Window.winfo_rootx()
@@ -269,8 +274,9 @@ class GUI:
             self.sidebar_width = min(max(int(pointer_x), 220), 420)
             self.Window.grid_columnconfigure(0, minsize=self.sidebar_width)
         elif self.resize_mode == "right":
-            self.right_panel_width = min(max(int(width - pointer_x), 360), 680)
+            self.right_panel_width = min(max(int(width - pointer_x), 380), 760)
             self.Window.grid_columnconfigure(2, minsize=self.right_panel_width)
+        self.Window.update_idletasks()
         self._position_resize_handles()
 
     def _build_sidebar(self, name):

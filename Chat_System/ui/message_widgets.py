@@ -56,7 +56,7 @@ def _text_height(text: str, wrap_chars: int) -> int:
 
 
 class SelectableText(tk.Text):
-    def __init__(self, master, text, bg, fg, wrap_chars=64, font_size=13, width=64):
+    def __init__(self, master, text, bg, fg, wrap_chars=64, font_size=15, width=64):
         super().__init__(
             master,
             height=_text_height(text, wrap_chars),
@@ -95,7 +95,7 @@ class Avatar(ctk.CTkLabel):
             corner_radius=size // 2,
             fg_color=color or _name_color(name),
             text_color="#ffffff",
-            font=ctk.CTkFont(size=max(11, size // 3), weight="bold"),
+            font=ctk.CTkFont(size=max(13, size // 3), weight="bold"),
         )
 
 
@@ -110,7 +110,7 @@ class SentimentChip(ctk.CTkLabel):
             corner_radius=11,
             fg_color=bg,
             text_color=fg,
-            font=ctk.CTkFont(size=10, weight="bold"),
+            font=ctk.CTkFont(size=12, weight="bold"),
         )
 
 
@@ -147,13 +147,13 @@ class MessageCard(ctk.CTkFrame):
             header,
             text=sender,
             text_color=COLORS["pink"] if outgoing else "#315bff",
-            font=ctk.CTkFont(size=13, weight="bold"),
+            font=ctk.CTkFont(size=15, weight="bold"),
         ).grid(row=0, column=0, sticky="w")
         ctk.CTkLabel(
             header,
             text=timestamp,
             text_color=COLORS["muted"],
-            font=ctk.CTkFont(size=11),
+            font=ctk.CTkFont(size=13),
         ).grid(row=0, column=1, sticky="e", padx=(12, 0))
 
         SelectableText(
@@ -194,7 +194,7 @@ class BotCard(ctk.CTkFrame):
             header,
             text=title,
             text_color=COLORS["purple"],
-            font=ctk.CTkFont(size=12, weight="bold"),
+            font=ctk.CTkFont(size=14, weight="bold"),
         ).pack(side="left")
         ctk.CTkLabel(
             header,
@@ -203,9 +203,9 @@ class BotCard(ctk.CTkFrame):
             corner_radius=5,
             fg_color="#eef4ff",
             text_color=COLORS["purple"],
-            font=ctk.CTkFont(size=9, weight="bold"),
+            font=ctk.CTkFont(size=11, weight="bold"),
         ).pack(side="left", padx=(8, 8))
-        ctk.CTkLabel(header, text=timestamp, text_color=COLORS["muted"], font=ctk.CTkFont(size=10)).pack(side="left")
+        ctk.CTkLabel(header, text=timestamp, text_color=COLORS["muted"], font=ctk.CTkFont(size=12)).pack(side="left")
 
         SelectableText(
             bubble,
@@ -237,7 +237,7 @@ class ImageCard(ctk.CTkFrame):
             bubble,
             text=f"AI Picture · {timestamp}",
             text_color="#e11d8a",
-            font=ctk.CTkFont(size=12, weight="bold"),
+            font=ctk.CTkFont(size=14, weight="bold"),
         ).grid(row=0, column=0, sticky="w", padx=12, pady=(10, 2))
         SelectableText(
             bubble,
@@ -245,7 +245,7 @@ class ImageCard(ctk.CTkFrame):
             bg="#f6f7fb",
             fg=COLORS["text"],
             wrap_chars=54,
-            font_size=12,
+            font_size=14,
             width=54,
         ).grid(row=1, column=0, sticky="w", padx=12, pady=(0, 8))
 

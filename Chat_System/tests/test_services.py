@@ -167,6 +167,23 @@ class ServiceTests(unittest.TestCase):
         self.assertIn("purple%20robot%20helper", url)
         self.assertIn("nologo=true", url)
 
+    def test_pollinations_timeout_returns_local_fallback(self):
+        import requests
+        import services.pollinations_client as pollinations_module
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            client = PollinationsClient(base_url="https://image.pollinations.ai/prompt", output_dir=Path(temp_dir))
+            original_get = pollinations_module.requests.get
+            pollinations_module.requests.get = lambda *_args, **_kwargs: (_ for _ in ()).throw(requests.Timeout("slow"))
+            try:
+                result = client.generate("demo robot")
+            finally:
+                pollinations_module.requests.get = original_get
+
+            self.assertTrue(result["fallback"])
+            self.assertTrue(Path(result["path"]).exists())
+            self.assertIn("demo%20robot", result["url"])
+
     def test_tic_tac_toe_detects_o_win_and_draw(self):
         room = TicTacToeRoom("room")
         room.add_player("Alice")
