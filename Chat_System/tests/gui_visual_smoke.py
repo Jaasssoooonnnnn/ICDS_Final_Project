@@ -71,6 +71,14 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     sent = []
     gui = GUI(lambda msg: sent.append(json.loads(msg)), lambda: "", FakeSM(), socket.socket())
+    gui.show_splash(start_mainloop=False, auto_finish=False)
+    gui.splash_window.update()
+    capture_window(gui.splash_window, out_dir / "splash_refactor.png")
+    gui.splash_frame.destroy()
+    gui.Window.overrideredirect(False)
+    gui.splash_window = None
+    gui.splash_frame = None
+
     gui.name = "Arjun Mehta"
     gui.layout("Arjun Mehta")
     gui.Window.geometry("1560x900+60+60")
@@ -118,6 +126,7 @@ def main():
     capture_window(ttt.window, out_dir / "tic_tac_toe_refactor.png")
     ttt.close()
     gui.close()
+    print(out_dir / "splash_refactor.png")
     print(out_dir / "main_chat_refactor.png")
     print(out_dir / "game_live_refactor.png")
     print(out_dir / "game_result_refactor.png")

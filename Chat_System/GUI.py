@@ -121,11 +121,128 @@ class GUI:
         self.summary_label = None
         self.keyword_label = None
         self.leaderboard_frame = None
+        self.splash_window = None
+        self.splash_frame = None
+        self.splash_progress = None
+        self.splash_status = None
+        self.splash_step = 0
 
     def run(self):
-        self.login()
+        self.show_splash()
 
-    def login(self):
+    def show_splash(self, start_mainloop=True, auto_finish=True):
+        self.splash_step = 0
+        splash = self.Window
+        splash_width = 620
+        splash_height = 470
+        self.splash_window = splash
+        splash.deiconify()
+        splash.title("ICDS Chat+")
+        splash.geometry(f"{splash_width}x{splash_height}")
+        splash.resizable(False, False)
+        splash.overrideredirect(True)
+        splash.configure(fg_color="#f7faff")
+
+        splash.update_idletasks()
+        x = (splash.winfo_screenwidth() - splash_width) // 2
+        y = (splash.winfo_screenheight() - splash_height) // 2
+        splash.geometry(f"{splash_width}x{splash_height}+{x}+{y}")
+        splash.state("normal")
+
+        for child in splash.winfo_children():
+            child.destroy()
+        card = ctk.CTkFrame(
+            splash,
+            fg_color="#ffffff",
+            corner_radius=22,
+            border_width=1,
+            border_color="#d7e1f3",
+        )
+        self.splash_frame = card
+        card.pack(fill="both", expand=True, padx=28, pady=28)
+
+        logo = ctk.CTkFrame(card, width=92, height=92, fg_color=COLORS["purple"], corner_radius=24)
+        logo.pack_propagate(False)
+        logo.pack(pady=(34, 18))
+        ctk.CTkLabel(
+            logo,
+            text="IC",
+            text_color="#ffffff",
+            font=ctk.CTkFont(family=FONT, size=28, weight="bold"),
+        ).pack(expand=True)
+
+        ctk.CTkLabel(
+            card,
+            text="ICDS Chat+",
+            text_color=COLORS["text"],
+            font=ctk.CTkFont(family=FONT, size=34, weight="bold"),
+        ).pack(pady=(0, 6))
+        ctk.CTkLabel(
+            card,
+            text="Distributed Socket Chat · AI Tools · Multiplayer Games",
+            text_color=COLORS["muted"],
+            font=ctk.CTkFont(family=FONT, size=15),
+        ).pack(pady=(0, 26))
+
+        chip_row = ctk.CTkFrame(card, fg_color="transparent")
+        chip_row.pack(pady=(0, 24))
+        for text in ("Socket", "OpenAI", "Tic-Tac-Toe"):
+            ctk.CTkLabel(
+                chip_row,
+                text=text,
+                height=30,
+                corner_radius=15,
+                fg_color="#eef3ff",
+                text_color=COLORS["purple"],
+                font=ctk.CTkFont(size=13, weight="bold"),
+            ).pack(side="left", padx=6)
+
+        self.splash_progress = ctk.CTkProgressBar(card, width=380, height=10, corner_radius=5, progress_color=COLORS["purple"])
+        self.splash_progress.pack(pady=(0, 12))
+        self.splash_progress.set(0)
+
+        self.splash_status = ctk.CTkLabel(
+            card,
+            text="Preparing chat workspace...",
+            text_color=COLORS["muted"],
+            font=ctk.CTkFont(size=13),
+        )
+        self.splash_status.pack()
+
+        if auto_finish:
+            self._animate_splash()
+            splash.after(1850, self._finish_splash)
+        if start_mainloop:
+            self.Window.mainloop()
+
+    def _animate_splash(self):
+        if self.splash_window is None or not self.splash_window.winfo_exists():
+            return
+        steps = (
+            "Loading socket client...",
+            "Preparing AI actions...",
+            "Starting game modules...",
+            "Opening workspace...",
+        )
+        progress = min(1.0, self.splash_step / 28)
+        if self.splash_progress is not None:
+            self.splash_progress.set(progress)
+        if self.splash_status is not None:
+            self.splash_status.configure(text=steps[min(len(steps) - 1, self.splash_step // 7)])
+        self.splash_step += 1
+        self.splash_window.after(55, self._animate_splash)
+
+    def _finish_splash(self):
+        if self.splash_frame is not None and self.splash_frame.winfo_exists():
+            self.splash_frame.destroy()
+        self.splash_frame = None
+        self.Window.overrideredirect(False)
+        self.Window.resizable(True, True)
+        self.Window.withdraw()
+        self.splash_window = None
+        self.login(start_mainloop=False)
+
+    def login(self, start_mainloop=True):
         self.login_window = ctk.CTkToplevel(self.Window)
         self.login_window.title("ICDS Chat Login")
         self.login_window.geometry("460x380")
@@ -176,7 +293,8 @@ class GUI:
             command=lambda: self.goAhead(self.entryName.get()),
         ).pack(fill="x", padx=34, pady=(12, 0))
 
-        self.Window.mainloop()
+        if start_mainloop:
+            self.Window.mainloop()
 
     def goAhead(self, name):
         name = name.strip()
