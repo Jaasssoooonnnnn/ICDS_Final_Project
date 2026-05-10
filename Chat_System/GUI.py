@@ -434,25 +434,61 @@ class GUI:
         nav.grid(row=2, column=0, sticky="ew", padx=30, pady=(0, 16))
         for index, (icon, label, key) in enumerate(NAV_ITEMS):
             selected = index == 0
-            btn = ctk.CTkButton(
+            row = ctk.CTkFrame(
                 nav,
-                text=(f"{icon}   {label}"),
-                anchor="w",
                 height=48,
                 corner_radius=12,
                 fg_color="#edf0ff" if selected else "transparent",
-                hover_color="#edf0ff",
+            )
+            row.pack_propagate(False)
+            row.pack(fill="x", pady=4)
+            icon_cell = ctk.CTkFrame(row, width=58, fg_color="transparent")
+            icon_cell.pack_propagate(False)
+            icon_cell.pack(side="left", padx=(8, 0), fill="y")
+            icon_label = ctk.CTkLabel(
+                icon_cell,
+                text=icon,
+                width=34,
+                anchor="center",
+                text_color=COLORS["purple"] if selected else COLORS["text"],
+                font=ctk.CTkFont(size=17),
+            )
+            icon_label.pack(expand=True)
+            text_label = ctk.CTkLabel(
+                row,
+                text=label,
+                anchor="w",
                 text_color=COLORS["purple"] if selected else COLORS["text"],
                 font=ctk.CTkFont(size=14, weight="bold" if selected else "normal"),
-                command=self._nav_action(key),
             )
-            btn.pack(fill="x", pady=4)
-            self.nav_buttons[key] = btn
+            text_label.pack(side="left", fill="x", expand=True)
+            self._bind_nav_row(row, self._nav_action(key))
+            self.nav_buttons[key] = row
 
         footer = ctk.CTkFrame(sidebar, fg_color="#ffffff", corner_radius=16, border_width=1, border_color=COLORS["border"])
         footer.grid(row=5, column=0, sticky="ew", padx=30, pady=(0, 28))
         ctk.CTkLabel(footer, text="●", text_color=COLORS["green"], font=ctk.CTkFont(size=14)).pack(side="left", padx=(18, 8), pady=12)
         ctk.CTkLabel(footer, text="Connected", text_color=COLORS["text"], font=ctk.CTkFont(size=12)).pack(side="left")
+
+    def _bind_nav_row(self, row, command):
+        def on_enter(_event=None):
+            row.configure(fg_color="#edf0ff")
+
+        def on_leave(_event=None):
+            if row is not self.nav_buttons.get("chat"):
+                row.configure(fg_color="transparent")
+
+        row.bind("<Button-1>", lambda _event: command())
+        row.bind("<Enter>", on_enter)
+        row.bind("<Leave>", on_leave)
+        self._bind_nav_children(row, command, on_enter, on_leave)
+
+    def _bind_nav_children(self, widget, command, on_enter, on_leave):
+        for child in widget.winfo_children():
+            child.bind("<Button-1>", lambda _event: command())
+            child.bind("<Enter>", on_enter)
+            child.bind("<Leave>", on_leave)
+            self._bind_nav_children(child, command, on_enter, on_leave)
 
     def _build_chat_column(self):
         center = ctk.CTkFrame(self.Window, fg_color=COLORS["center"], corner_radius=0)
